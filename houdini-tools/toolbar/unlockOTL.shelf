@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <tool name="unlock DB" label="Unlock" icon="PLASMA_App">
+    <helpText><![CDATA[= Unlock DB =
+
+"""Unlock the database even if someone else has an asset locked. Use with caution!"""
+
+This tool is dangerous and should be used with caution!]]></helpText>
+    <script scriptType="python"><![CDATA[import hou_asset_mgr as mgr
+
+node = mgr.getSelectedNode()
+if node != None:
+    mgr.unlockOTLbyNode(node)
+else:
+    mgr.unlockLightingFile()
+]]></script>
+  </tool>
+</shelfDocument>
