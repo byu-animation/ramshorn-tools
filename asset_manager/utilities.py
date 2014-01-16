@@ -85,6 +85,7 @@ def createNewAssetFolders(parent, name):
 	addVersionedFolder(new_dir, 'rig')
 	os.makedirs(os.path.join(new_dir, "geo"))
 	os.makedirs(os.path.join(new_dir, "images"))
+	os.makedirs(os.path.join(new_dir, "reference"))
 	return new_dir
 
 def createNewShotFolders(parent, name):
