@@ -643,10 +643,14 @@ def deleteAsset(node = None):
 def newGeo(hpath):
     templateNode = hou.node(hpath).createNode("geometryTemplate")
     alist = listContainers()
-    resp = hou.ui.readInput("Enter the New Operator Label", title="OTL Label", buttons=('OK', 'Cancel'))
+    response = hou.ui.readInput("Enter the New Operator Label", title="OTL Label", buttons=('OK', 'Cancel'))
     filename = str()
-    if resp != None and resp.strip() != '':
-        name = formatName(resp)
+    if response[0]==0:
+        name = response[1]
+    else:
+        name = None
+    if name != None and name.strip() != '':
+        name = formatName(name)
         filename = name.replace(' ', '_')
         templateNode.setName(filename, unique_name=True)
     answer = hou.ui.selectFromList(alist, message='Select Container Asset this belongs to:', exclusive=True)
@@ -655,8 +659,8 @@ def newGeo(hpath):
         templateNode.destroy()
         return
     answer = answer[0]
-    sdir = '$JOB/PRODUCTION/assets/'
-    gfile = hou.ui.selectFile(start_directory=sdir + alist[answer]+'/geo', title='Choose Geometry', chooser_mode=hou.fileChooserMode.Read, pattern='*.bjson, *.obj')
+    sdir = os.environ['ASSETS_DIR']
+    gfile = hou.ui.selectFile(start_directory=os.path.join(sdir, alist[answer]+'/geo'), title='Choose Geometry', chooser_mode=hou.fileChooserMode.Read, pattern='*.bjson, *.obj')
     if len(gfile) > 4 and gfile[:4] != '$JOB':
         hou.ui.displayMessage("Path must start with '$JOB'. Default geometry used instead.", title='Path Name', severity=hou.severityType.Error)
         templateNode.destroy()
