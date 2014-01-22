@@ -58,6 +58,7 @@ def createNodeInfoFile(dirPath):
 	nodeInfo.set('Versioning', 'LastCheckoutUser', username)
 	nodeInfo.set('Versioning', 'LastCheckinTime', timestamp)
 	nodeInfo.set('Versioning', 'LastCheckinUser', username)
+	nodeInfo.add_section('Comments')
 	
 	_writeConfigFile(os.path.join(dirPath, ".nodeInfo"), nodeInfo)
 	
@@ -415,6 +416,20 @@ def canCheckin(toCheckin):
 			result = False
 	
 	return result
+
+def setComment(toCheckin, comment):
+	chkoutInfo = ConfigParser()
+	chkoutInfo.read(os.path.join(toCheckin, ".checkoutInfo"))
+	chkInDest = chkoutInfo.get("Checkout", "checkedoutfrom")
+
+	nodeInfo = ConfigParser()
+	nodeInfo.read(os.path.join(chkInDest, ".nodeInfo"))
+	newVersion = nodeInfo.getint("Versioning", "latestversion")
+	timestamp = time.strftime("%a, %d %b %Y %I:%M:%S %p", time.localtime())
+	commentLine = getUsername() + ': ' + timestamp + ': ' + '"' + comment + '"' 
+	nodeInfo.set("Comments", 'v' + str(newVersion), commentLine)
+	
+	_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
 
 def purge(dirPath, upto):
 	"""

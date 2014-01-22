@@ -20,7 +20,7 @@ if [ -z "$JOB" ]
 then
     # The name of the project (eg: owned)
     export PROJECT_NAME=ramshorn
-    export JOB=/groups/${PROJECT_NAME}
+	export JOB=/users/home1/guest/m/medge/Desktop/RamsHorn
 else
     export PROJECT_NAME=`basename $JOB`
 fi
@@ -119,7 +119,7 @@ buildProjectDirs()
 }
 
 # Uncomment to build the project directories
-buildProjectDirs
+#buildProjectDirs
 
 
 ###############################################################################
