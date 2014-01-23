@@ -27,7 +27,7 @@ class CheckoutDialog(QDialog):
 	def create_layout(self):
 		#Create the selected item list
 		self.selection_list = QListWidget()
-		self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+		self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)	
 
 		#Create Models, Rig, Animation		
 		radio_button_group = QVBoxLayout()
@@ -40,6 +40,10 @@ class CheckoutDialog(QDialog):
 		radio_button_group.addWidget(self.rig_radio)
 		radio_button_group.addWidget(self.animation_radio)
 
+		#Create Label to hold asset info
+		self.asset_info_label = QLabel("test")
+		self.asset_info_label.setWordWrap(True)
+
 		#Create New Animation button
 		self.new_animation_button = QPushButton('New Animation')
 		
@@ -48,7 +52,6 @@ class CheckoutDialog(QDialog):
 
 		#Create Select and Cancel buttons
 		self.select_button = QPushButton('Select')
-		self.info_button = QPushButton('Get Info')
 		self.cancel_button = QPushButton('Cancel')
 		
 		#Create button layout
@@ -57,7 +60,6 @@ class CheckoutDialog(QDialog):
 		button_layout.addStretch()
 	
 		button_layout.addWidget(self.select_button)
-		button_layout.addWidget(self.info_button)
 		button_layout.addWidget(self.unlock_button)
 		button_layout.addWidget(self.cancel_button)
 		
@@ -65,7 +67,9 @@ class CheckoutDialog(QDialog):
 		main_layout = QVBoxLayout()
 		main_layout.setSpacing(2)
 		main_layout.setMargin(2)
-		main_layout.addWidget(self.selection_list)		
+		main_layout.addWidget(self.selection_list)
+		#add text box to main layout to display info when asset is selected
+		main_layout.addWidget(self.asset_info_label)		
 		main_layout.addLayout(radio_button_group)
 		main_layout.addWidget(self.new_animation_button)
 		main_layout.addLayout(button_layout)
@@ -85,12 +89,13 @@ class CheckoutDialog(QDialog):
 		self.connect(self.new_animation_button, SIGNAL('clicked()'), self.new_animation)
 		self.connect(self.unlock_button, SIGNAL('clicked()'), self.unlock)
 		self.connect(self.select_button, SIGNAL('clicked()'), self.checkout)
-		self.connect(self.info_button, SIGNAL('clicked()'), self.show_node_info)
 		self.connect(self.cancel_button, SIGNAL('clicked()'), self.close_dialog)
 	
 	def update_selection(self, selection):
 		#Remove all items from the list before repopulating
 		self.selection_list.clear()
+		#Clear info displayed about asset
+		self.asset_info_label.clear()
 		
 		#Add the list to select from
 		for s in selection:
@@ -217,6 +222,7 @@ class CheckoutDialog(QDialog):
 	
 	def set_current_item(self, item):
 		self.current_item = item
+		self.show_node_info()
 		
 	def show_node_info(self):
 		asset_name = str(self.current_item.text())
@@ -233,12 +239,9 @@ class CheckoutDialog(QDialog):
 		else:
 			checkout_str = 'Checked out by '+node_info[0]+'. '
 		checkin_str = 'Last checked in by '+node_info[1]+' on '+node_info[2]
-		cmd.confirmDialog(  title          = asset_name+" Info"
-                                   , message       = checkout_str+checkin_str
-                                   , button        = ['Ok']
-                                   , defaultButton = 'Ok'
-                                   , cancelButton  = 'Ok'
-                                   , dismissString = 'Ok')
+		
+		print 'should clear label'
+		self.asset_info_label.setText(checkout_str+checkin_str)
 		
 def go():
 	dialog = CheckoutDialog()
