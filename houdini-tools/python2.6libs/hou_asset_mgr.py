@@ -104,12 +104,12 @@ def moveToOtlDir(node, filename):
     copyToOtlDir(node, filename, None, None)
     os.remove(oldfilepath)
 
-def copyToUsrDir(node, filename):
+def copyToUsrDir(node, filename, destpath):
     """Copies the .otl file from OTLDIR to USERDIR
         Changes the oplibrary to the one in USERDIR"""
-    if not os.path.exists(USERDIR):
-        os.mkdir(USERDIR)
-    newfilepath = os.path.join(USERDIR, filename)
+    if not os.path.exists(destpath):
+        os.mkdir(destpath)
+    newfilepath = os.path.join(destpath, filename)
     oldfilepath = os.path.join(OTLDIR, filename)
     node.type().definition().copyToHDAFile(newfilepath)
     #fileutil.clobberPermissions(newfilepath)
@@ -322,21 +322,46 @@ def checkout(node):
             return False
         libraryPath = node.type().definition().libraryFilePath()
         filename = os.path.basename(libraryPath)
-        info = getFileInfo(filename)
-        if info == None:
-            hou.ui.displayMessage("Add OTL First.")
-        elif not info[2] or (info[2] and info[3].encode('utf-8') == USERNAME):
-            copyToUsrDir(node, filename)
-            lockAsset(node, True)
-            saveOTL(node)
-            node.allowEditingOfContents()
-            lockOTL(filename)
-            hou.ui.displayMessage("Checkout Successful!", title='Success!')
+
+        asset_name, ext = os.path.splitext(filename)
+        toCheckout = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'otl')
+        myCheckout = False
+        try:
+            destpath = amu.checkout(toCheckout, True)
+        except Exception as e:
+            print str(e)
+            myCheckout = amu.checkedOutByMe(toCheckout)
+            if not myCheckout:
+                hou.ui.displayMessage('Can Not Checkout.')
+                return
+            else:
+                destpath = amu.getCheckoutDest(toCheckout)
+
+        if myCheckout:
+            switchOPLibraries(os.path.join(OTLDIR, filename), os.path.join(destpath, filename))
         else:
-            logname, realname = amu.lockedBy(info[3].encode('utf-8'))
-            whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
-            errstr = 'Cannot checkout asset. Locked by: \n\n' + whoLocked
-            hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
+            copyToUsrDir(node, filename, destpath)
+        lockAsset(node, True)
+        saveOTL(node)
+        node.allowEditingOfContents()
+        hou.ui.displayMessage("Checkout Successful!", title='Success!')
+
+        # info = getFileInfo(filename)
+        # if info == None:
+        #     hou.ui.displayMessage("Add OTL First.")
+        # elif not info[2] or (info[2] and info[3].encode('utf-8') == USERNAME):
+        #     print asset_name
+        #     copyToUsrDir(node, filename)
+        #     lockAsset(node, True)
+        #     saveOTL(node)
+        #     node.allowEditingOfContents()
+        #     lockOTL(filename)
+        #     hou.ui.displayMessage("Checkout Successful!", title='Success!')
+        # else:
+        #     logname, realname = amu.lockedBy(info[3].encode('utf-8'))
+        #     whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
+        #     errstr = 'Cannot checkout asset. Locked by: \n\n' + whoLocked
+        #     hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
 
 def isCameraAsset(node):
     return 'cameras' in node.name()
@@ -417,40 +442,68 @@ def writeSetToAlembic(node):
 def checkin(node = None):
     """Checks in the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
         The node must already exist in the database, and USERNAME must have the lock."""
-    updateDB()
+    # updateDB()
     if not isDigitalAsset(node):
         hou.ui.displayMessage("Not a Digital Asset.")
     else:
-        libraryPath = node.type().definition().libraryFilePath()
-        filename = os.path.basename(libraryPath)
-        info = getFileInfo(filename)
-        if info == None:
-            hou.ui.displayMessage("Add the OTL first")
-        elif info[2]:
-            if not node.isLocked() and info[3] == USERNAME:
-                saveOTL(node) # This save is not strictly necessary since we save again two lines down
-                lockAsset(node, False)
-                saveOTL(node)
-                moveToOtlDir(node, filename)
-                unlockOTL(filename)
-                if isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
+        libraryPath = node.type().definition().libraryFilePath() #user checkout folder
+        filename = os.path.basename(libraryPath) # otl filename
+        toCheckin = os.path.dirname(libraryPath)
+
+        if os.path.exists(os.path.join(toCheckin, ".checkoutInfo")) and amu.canCheckin(toCheckin):
+            lockAsset(node, False)
+            saveOTL(node)
+            node.type().definition().save(libraryPath)
+            hou.hda.uninstallFile(libraryPath, change_oplibraries_file=False)
+            assetdir = amu.checkin(toCheckin, False)
+            assetpath = amu.getAvailableInstallFiles(assetdir)[0]
+            amu.install(assetdir, assetpath)
+            hou.hda.installFile(os.path.join(OTLDIR, filename), change_oplibraries_file=True)
+            hou.hda.uninstallFile("Embedded")
+            if isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
                                                         , buttons=('Yes','No',)
                                                         , default_choice=0
                                                         , title='Export Alembic') == 0:
-                    writeCamerasToAlembic(node)
-                if isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
+                writeCamerasToAlembic(node)
+            if isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
                                                         , buttons=('Yes','No',)
                                                         , default_choice=0
                                                         , title='Export Alembic') == 0:
-                    writeSetToAlembic(node)
-                hou.ui.displayMessage("Checkin Successful!")
-            else:
-                logname, realname = amu.lockedBy(info[3].encode('utf-8'))
-                whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
-                errstr = 'Cannot checkin asset. Locked by: \n\n' + whoLocked
-                hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
+                writeSetToAlembic(node)
+            hou.ui.displayMessage("Checkin Successful!")
+
         else:
-            hou.ui.displayMessage("Already checked in.")
+            hou.ui.displayMessage('Can Not Checkin.')
+        
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # info = getFileInfo(filename)
+        # if info == None:
+        #     hou.ui.displayMessage("Add the OTL first")
+        # elif info[2]:
+        #     if not node.isLocked() and info[3] == USERNAME:
+        #         saveOTL(node) # This save is not strictly necessary since we save again two lines down
+        #         lockAsset(node, False)
+        #         saveOTL(node)
+        #         moveToOtlDir(node, filename)
+        #         unlockOTL(filename)
+        #         if isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
+        #                                                 , buttons=('Yes','No',)
+        #                                                 , default_choice=0
+        #                                                 , title='Export Alembic') == 0:
+        #             writeCamerasToAlembic(node)
+        #         if isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
+        #                                                 , buttons=('Yes','No',)
+        #                                                 , default_choice=0
+        #                                                 , title='Export Alembic') == 0:
+        #             writeSetToAlembic(node)
+        #         hou.ui.displayMessage("Checkin Successful!")
+        #     else:
+        #         logname, realname = amu.lockedBy(info[3].encode('utf-8'))
+        #         whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
+        #         errstr = 'Cannot checkin asset. Locked by: \n\n' + whoLocked
+        #         hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
+        # else:
+        #     hou.ui.displayMessage("Already checked in.")
 
 def discard(node = None):
     updateDB()
@@ -505,13 +558,26 @@ def newContainer(hpath):
         name = formatName(name)
         filename = name.replace(' ', '_')
         newfilepath = os.path.join(OTLDIR, filename+'.otl')
+        
         if not os.path.exists(newfilepath):
-            # create file heirarchy if container asset
+            # create file heirarchy if container asset            
             amu.createNewAssetFolders(ASSETSDIR, filename)
-            templateNode.type().definition().copyToHDAFile(newfilepath, new_name=filename, new_menu_name=name)
+
+            newversiondir = os.path.join(ASSETSDIR, filename+'/otl')
+            print "dir " + newversiondir
+            newversionpath = os.path.join(newversiondir, 'src/v000/'+filename+'.otl')
+            print "path " + newversionpath
+            templateNode.type().definition().copyToHDAFile(newversionpath, new_name=filename, new_menu_name=name)
+            stablepath = amu.install(newversiondir, newversionpath)
+            os.symlink(stablepath, newfilepath)
             hou.hda.installFile(newfilepath, change_oplibraries_file=True)
             fileutil.clobberPermissions(newfilepath)
             newnode = hou.node(hpath).createNode(filename)
+            
+            # templateNode.type().definition().copyToHDAFile(newfilepath, new_name=filename, new_menu_name=name)
+            # hou.hda.installFile(newfilepath, change_oplibraries_file=True)
+            # fileutil.clobberPermissions(newfilepath)
+            # newnode = hou.node(hpath).createNode(filename)
         else:
             hou.ui.displayMessage("Asset by that name already exists. Cannot create asset.", title='Asset Name', severity=hou.severityType.Error)
         
@@ -659,7 +725,7 @@ def newGeo(hpath):
         templateNode.destroy()
         return
     answer = answer[0]
-    sdir = os.environ['ASSETS_DIR']
+    sdir = '$JOB/production/assets/'
     gfile = hou.ui.selectFile(start_directory=os.path.join(sdir, alist[answer]+'/geo'), title='Choose Geometry', chooser_mode=hou.fileChooserMode.Read, pattern='*.bjson, *.obj')
     if len(gfile) > 4 and gfile[:4] != '$JOB':
         hou.ui.displayMessage("Path must start with '$JOB'. Default geometry used instead.", title='Path Name', severity=hou.severityType.Error)

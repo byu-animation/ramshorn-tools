@@ -84,6 +84,7 @@ def createNewAssetFolders(parent, name):
 	addProjectFolder(parent, name)
 	addVersionedFolder(new_dir, 'model', 5)
 	addVersionedFolder(new_dir, 'rig', -1)
+	addVersionedFolder(new_dir, 'otl', -1)
 	os.makedirs(os.path.join(new_dir, "geo"))
 	os.makedirs(os.path.join(new_dir, "images"))
 	os.makedirs(os.path.join(new_dir, "reference"))
@@ -560,6 +561,7 @@ def install(vDirPath, srcFilePath):
 	print newInstFilePath
 	
 	shutil.copy(srcFilePath, newInstFilePath)
+	return newInstFilePath
 
 def runAlembicConverter(vDirPath, srcFilePath, filename=None):
 	if filename is None:
