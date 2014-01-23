@@ -8,7 +8,7 @@ import os, glob
 import utilities as amu
 
 CHECKOUT_WINDOW_WIDTH = 330
-CHECKOUT_WINDOW_HEIGHT = 600
+CHECKOUT_WINDOW_HEIGHT = 620
 
 def maya_main_window():
 	ptr = omu.MQtUtil.mainWindow()
@@ -29,19 +29,21 @@ class CheckoutDialog(QDialog):
 		self.selection_list = QListWidget()
 		self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
-		#Create Models, Rig, Animation		
-		radio_button_group = QVBoxLayout()
+		#Create Models, Rig, Animation, Previs
+		radio_button_group = QHBoxLayout()
 		self.model_radio = QRadioButton('Model')
 		self.rig_radio = QRadioButton('Rig')
 		self.animation_radio = QRadioButton('Animation')
+		self.previs_radio = QRadioButton('Previs')
 		self.model_radio.setChecked(True)
 		radio_button_group.setSpacing(2)
 		radio_button_group.addWidget(self.model_radio)
 		radio_button_group.addWidget(self.rig_radio)
 		radio_button_group.addWidget(self.animation_radio)
+		radio_button_group.addWidget(self.previs_radio)
 
-		#Create New Animation button
-		self.new_animation_button = QPushButton('New Animation')
+		#Create New Shot button; used by Animation & Previs modes
+		self.new_shot_button = QPushButton('New Shot')
 		
 		#Create Unlock button
 		self.unlock_button = QPushButton('Unlock')
@@ -67,7 +69,7 @@ class CheckoutDialog(QDialog):
 		main_layout.setMargin(2)
 		main_layout.addWidget(self.selection_list)		
 		main_layout.addLayout(radio_button_group)
-		main_layout.addWidget(self.new_animation_button)
+		main_layout.addWidget(self.new_shot_button)
 		main_layout.addLayout(button_layout)
 		
 		self.setLayout(main_layout)
@@ -82,7 +84,8 @@ class CheckoutDialog(QDialog):
 		self.connect(self.model_radio, SIGNAL('clicked()'), self.refresh)
 		self.connect(self.rig_radio, SIGNAL('clicked()'), self.refresh)
 		self.connect(self.animation_radio, SIGNAL('clicked()'), self.refresh)
-		self.connect(self.new_animation_button, SIGNAL('clicked()'), self.new_animation)
+		self.connect(self.previs_radio, SIGNAL('clicked()'), self.refresh)
+		self.connect(self.new_shot_button, SIGNAL('clicked()'), self.new_animation)
 		self.connect(self.unlock_button, SIGNAL('clicked()'), self.unlock)
 		self.connect(self.select_button, SIGNAL('clicked()'), self.checkout)
 		self.connect(self.info_button, SIGNAL('clicked()'), self.show_node_info)
@@ -100,24 +103,47 @@ class CheckoutDialog(QDialog):
 		self.selection_list.sortItems(0)
 	
 	def refresh(self):
-		if self.animation_radio.isChecked():
-			self.new_animation_button.setEnabled(True)
-			selections = glob.glob(os.path.join(os.environ['SHOTS_DIR'], '*'))
-		else:
-			self.new_animation_button.setEnabled(False)
-			selections = glob.glob(os.path.join(os.environ['ASSETS_DIR'], '*'))
+		# updates selection list and toggles the "New Shot" button
+		self.new_shot_button.setEnabled(self.animation_radio.isChecked() or self.previs_radio.isChecked())
+		selections = glob.glob(os.path.join(self.get_checkout_location(), '*'))
 		self.update_selection(selections)
 	
 	def new_animation(self):
-		text, ok = QInputDialog.getText(self, 'New Animation', 'Enter seq_shot (ie: a01)')
+		text, ok = QInputDialog.getText(self, 'New Shot', 'Enter seq_shot (ie: a01)')
 		if ok:
 			text = str(text)
-			amu.createNewShotFolders(os.environ['SHOTS_DIR'], text)
+			if self.previs_radio.isChecked():
+				amu.createNewPrevisFolders(os.environ['PREVIS_DIR'], text)
+			elif self.animation_radio.isChecked():
+				amu.createNewShotFolders(os.environ['SHOTS_DIR'], text)
 		self.refresh()
 		return
 	
 	def get_filename(self, parentdir):
 		return os.path.basename(os.path.dirname(parentdir))+'_'+os.path.basename(parentdir)
+
+	def get_asset_path(self):
+		# returns the path for a single asset
+		asset_name = str(self.current_item.text())
+		if self.model_radio.isChecked():
+			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
+		elif self.rig_radio.isChecked():
+			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
+		elif self.animation_radio.isChecked():
+			filePath = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
+		elif self.previs_radio.isChecked():
+			filePath = os.path.join(os.environ['PREVIS_DIR'], asset_name, 'animation')
+		return filePath
+
+	def get_checkout_location(self):
+		# returns the environment path for this checkout mode
+		if self.model_radio.isChecked() or self.rig_radio.isChecked():
+			return os.environ['ASSETS_DIR']
+		if self.animation_radio.isChecked():
+			return os.environ['SHOTS_DIR']
+		if self.previs_radio.isChecked():
+			return os.environ['PREVIS_DIR']
+		raise Exception("Unimplemented checkout mode...");
 
 	def showIsLockedDialog(self):
 		return cmd.confirmDialog(title = 'Already Unlocked'
@@ -145,16 +171,7 @@ class CheckoutDialog(QDialog):
 
 
 	def unlock(self):
-
-		asset_name = str(self.current_item.text())
-
-		if self.model_radio.isChecked():
-			toUnlock = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-		elif self.rig_radio.isChecked():
-			toUnlock = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-		elif self.animation_radio.isChecked():
-			toUnlock = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
-		
+		toUnlock = self.get_asset_path()		
 		if amu.isLocked(toUnlock):
 
 			if self.showConfirmUnlockDialog() == 'No':
@@ -177,13 +194,7 @@ class CheckoutDialog(QDialog):
 		if not curfilepath == '':
 			cmd.file(save=True, force=True)
 
-		asset_name = str(self.current_item.text())
-		if self.model_radio.isChecked():
-			toCheckout = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-		elif self.rig_radio.isChecked():
-			toCheckout = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-		elif self.animation_radio.isChecked():
-			toCheckout = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
+		toCheckout = self.get_asset_path()
 
 		try:
 			destpath = amu.checkout(toCheckout, True)
@@ -220,12 +231,7 @@ class CheckoutDialog(QDialog):
 		
 	def show_node_info(self):
 		asset_name = str(self.current_item.text())
-		if self.model_radio.isChecked():
-			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-		elif self.rig_radio.isChecked():
-			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-		elif self.animation_radio.isChecked():
-			filePath = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
+		filePath = self.get_asset_path();
 		node_info = amu.getVersionedFolderInfo(filePath)
 		checkout_str = node_info[0]
 		if(checkout_str ==''):
