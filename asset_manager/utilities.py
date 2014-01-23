@@ -59,7 +59,8 @@ def createNodeInfoFile(dirPath, toKeep):
 	nodeInfo.set('Versioning', 'LastCheckoutUser', username)
 	nodeInfo.set('Versioning', 'LastCheckinTime', timestamp)
 	nodeInfo.set('Versioning', 'LastCheckinUser', username)
-	
+	nodeInfo.add_section('Comments')
+
 	_writeConfigFile(os.path.join(dirPath, ".nodeInfo"), nodeInfo)
 	
 def addVersionedFolder(parent, name, toKeep):
@@ -434,14 +435,29 @@ def canCheckin(toCheckin):
 	
 	return result
 
-def purge(dirPath, upto):
+def setComment(toCheckin, comment):
+	chkoutInfo = ConfigParser()
+	chkoutInfo.read(os.path.join(toCheckin, ".checkoutInfo"))
+	chkInDest = chkoutInfo.get("Checkout", "checkedoutfrom")
+
+	nodeInfo = ConfigParser()
+	nodeInfo.read(os.path.join(chkInDest, ".nodeInfo"))
+	newVersion = nodeInfo.getint("Versioning", "latestversion") + 1
+	timestamp = time.strftime("%a, %d %b %Y %I:%M:%S %p", time.localtime())
+	commentLine = getUsername() + ': ' + timestamp + ': ' + '"' + comment + '"' 
+	nodeInfo.set("Comments", 'v' + "%03d" % (newVersion,), commentLine)	
+	_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
+
+def purge(dirPath, nodeInfo, upto):
 	"""
 	purges all folders in dirPath with a version less than upto
 	"""
 	files = glob.glob(os.path.join(dirPath, '*'))
 	for f in files:
-		if int(os.path.basename(f).split('v')[1]) < upto:
+		version = int(os.path.basename(f).split('v')[1])
+		if version < upto:
 			shutil.rmtree(f)
+			nodeInfo.remove_option("Comments", 'v' + "%03d" % (version,))
 
 def purgeAfter(dirPath, after):
     """
@@ -507,7 +523,8 @@ def checkin(toCheckin, isAnim):
 	
 	#print glob.glob(os.path.join(chkInDest, "src", "*"))
 	if toKeep > 0:
-		purge(os.path.join(chkInDest, "src"), newVersion - toKeep)
+		purge(os.path.join(chkInDest, "src"), nodeInfo, newVersion - toKeep)
+		_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
 
 	# Clean up
 	shutil.rmtree(toCheckin)
