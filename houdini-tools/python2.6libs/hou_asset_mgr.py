@@ -128,17 +128,17 @@ def unlockOTLbyNode(node = None):
     """Calls unlockOTL with the selected node"""
     if node != None:
         if not isDigitalAsset(node):
-            ui.infoWindow("Not a Digital Asset.")
+            hou.ui.displayMessage("Not a Digital Asset.")
         else:
-            reply = ui.warningWindow('WARNING! You are unlocking the Database! \n If you are being dumb, please click \n CANCEL!')
+            warningMsg = 'WARNING! You are unlocking the Database! \n If you didn\'t mean to do this, please click \n CANCEL!'
+            reply = hou.ui.displayMessage(warningMsg, title='Warning!', buttons=('Ok', 'Cancel'), default_choice=1)
             if reply == 0:
                 libraryPath = node.type().definition().libraryFilePath()
                 filename = os.path.basename(libraryPath)
                 #TODO save this somewhere
                 unlockOTL(filename)
             else:
-                ui.infoWindow('Thank you for being safe. \n If you have question please talk to someone in charge.')
-                
+                hou.ui.displayMessage('Thank you for being safe. \n If you have a question please talk to someone in charge.')                
 
 def unlockOTL(filename):
     """Updates the database entry specified by filename to locked=0 and lockedby=''"""
@@ -213,7 +213,7 @@ def _lockAssetNew(node, lockit):
             ndef.addSection('EditableNodes', val)
             opts.setLockContents(True)
             ndef.setOptions(opts)
-        else: # On everything else, for now do nothing.
+        else: # On everything else, for now do nothing. 
             pass
 
 lockAsset = _lockAssetNew
@@ -228,9 +228,7 @@ def checkoutLightingFile():
     for sp in shotPaths:
         selections.append(os.path.basename(sp))
     selections.sort()
-    print('Im calling ui')
-    answer = ui.listWindow(selections, wmessage='Select shot file to checkout:')
-    print('Im done calling ui')
+    answer = hou.ui.selectFromList(selections, message='Select shot file to checkout:', exclusive=True)
     if answer:
         answer = answer[0]
         toCheckout = os.path.join(os.environ['SHOTS_DIR'], selections[answer], 'lighting')
@@ -239,7 +237,7 @@ def checkoutLightingFile():
             destpath = amu.checkout(toCheckout, True)
         except Exception as e:
             if not amu.checkedOutByMe(toCheckout):
-                ui.infoWindow('Can Not Checkout: '+str(e))
+                hou.ui.displayMessage('Can Not Checkout: '+str(e))
                 return
             else:
                 destpath = amu.getCheckoutDest(toCheckout)
@@ -259,22 +257,21 @@ def unlockLightingFile():
     for sp in shotPaths:
         selections.append(os.path.basename(sp))
     selections.sort()
-    answer = ui.listWindow(selections, wmessage='Select shot file to unlock:')
+    answer = hou.ui.selectFromList(selections, message='Select shot file to unlock:', exclusive=True)
     if answer:
         answer = answer[0]
         toUnlock = os.path.join(os.environ['SHOTS_DIR'], selections[answer], 'lighting')
-	if amu.isLocked(toUnlock):
-		reply = ui.warningWindow('Are you sure you want to unlock this file?')
-    		if reply == 0:
-			hou.hipFile.save()
-        		hou.hipFile.clear()		
-			amu.unlock(toUnlock)
-			ui.infoWindow('Lighting file unlocked')
-			
-	else:
-		ui.infoWindow('Lighting file already unlocked')
-                return
+    if amu.isLocked(toUnlock):
+        reply = hou.ui.displayMessage('Are you sure you want to unlock this file?', buttons=('Ok', 'Cancel'))
+        if reply == 0:
+            hou.hipFile.save()
+            hou.hipFile.clear()		
+            amu.unlock(toUnlock)
+            hou.ui.displayMessage('Lighting file unlocked')
 
+    else:
+        hou.ui.displayMessage('Lighting file already unlocked')
+        return
 
 def checkinLightingFile():
     print('checkin lighting file')
@@ -291,55 +288,55 @@ def checkinLightingFile():
         srcFile = amu.getAvailableInstallFiles(dest)[0]
         amu.install(dest, srcFile)
     else:
-        ui.infoWindow('Checkin Failed')
+        hou.ui.displayMessage('Checkin Failed')
 
 def discardLightingFile():
     filepath = hou.hipFile.path()
     #TODO
     print(filepath)
-    if ui.infoWindow('YOU ARE ABOUT TO IRREVOKABLY DISCARD ALL CHANGES YOU HAVE MADE. '
-                        'Please think this through very carefully.\n\nNow that we have '
-                        'gotten that straightened out, are you sure you want to discard '
+    if hou.ui.displayMessage('YOU ARE ABOUT TO IRREVOKABLY DISCARD ALL CHANGES YOU HAVE MADE. '
+                        'Please think this through very carefully.\n '
+                        'Are you sure you want to discard '
                         'your changes?'
-                        , wbuttons=('Yes','No',)
-                        , wdefault_choice=1
-                        , wtitle='Discard Confirmation') == 0:
+                        , buttons=('Yes','No',)
+                        , default_choice=1
+                        , title='Discard Confirmation') == 0:
         toDiscard = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(filepath)))
         if amu.isCheckedOutCopyFolder(toDiscard):
             hou.hipFile.clear()
             amu.discard(toDiscard)
         else:
-            ui.infoWindow('This is not a checked out file.  There is nothing to discard', wtitle='Invalid Command')
+            hou.ui.displayMessage('This is not a checked out file.  There is nothing to discard', title='Invalid Command')
     else:
-        ui.infoWindow('Thank you for being responsible.', wtitle='Discard Cancelled')
+        hou.ui.displayMessage('Thank you for being responsible.', title='Discard Cancelled')
 
 def checkout(node):
     """Checks out the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
         The node must already exist in the database."""
     updateDB()
     if not isDigitalAsset(node):
-        ui.infoWindow("Not a Digital Asset.")
+        hou.ui.displayMessage("Not a Digital Asset.")
     else:
         if node.type().name() == "geometryTemplate":
-            ui.infoWindow("Cannot checkout geometry template node.")
+            hou.ui.displayMessage("Cannot checkout geometry template node.")
             return False
         libraryPath = node.type().definition().libraryFilePath()
         filename = os.path.basename(libraryPath)
         info = getFileInfo(filename)
         if info == None:
-            ui.infoWindow("Add OTL First.")
+            hou.ui.displayMessage("Add OTL First.")
         elif not info[2] or (info[2] and info[3].encode('utf-8') == USERNAME):
             copyToUsrDir(node, filename)
             lockAsset(node, True)
             saveOTL(node)
             node.allowEditingOfContents()
             lockOTL(filename)
-            ui.infoWindow("Checkout Successful!", wtitle='Success!')
+            hou.ui.displayMessage("Checkout Successful!", title='Success!')
         else:
             logname, realname = amu.lockedBy(info[3].encode('utf-8'))
             whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
             errstr = 'Cannot checkout asset. Locked by: \n\n' + whoLocked
-            ui.infoWindow(errstr, wtitle='Asset Locked', msev=messageSeverity.Error)
+            hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
 
 def isCameraAsset(node):
     return 'cameras' in node.name()
@@ -422,13 +419,13 @@ def checkin(node = None):
         The node must already exist in the database, and USERNAME must have the lock."""
     updateDB()
     if not isDigitalAsset(node):
-        ui.infoWindow("Not a Digital Asset.")
+        hou.ui.displayMessage("Not a Digital Asset.")
     else:
         libraryPath = node.type().definition().libraryFilePath()
         filename = os.path.basename(libraryPath)
         info = getFileInfo(filename)
         if info == None:
-            ui.infoWindow("Add the OTL first")
+            hou.ui.displayMessage("Add the OTL first")
         elif info[2]:
             if not node.isLocked() and info[3] == USERNAME:
                 saveOTL(node) # This save is not strictly necessary since we save again two lines down
@@ -436,35 +433,35 @@ def checkin(node = None):
                 saveOTL(node)
                 moveToOtlDir(node, filename)
                 unlockOTL(filename)
-                if isCameraAsset(node) and ui.infoWindow('Export Alembic?'
-                                                        , wbuttons=('Yes','No',)
-                                                        , wdefault_choice=0
-                                                        , wtitle='Export Alembic') == 0:
+                if isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
+                                                        , buttons=('Yes','No',)
+                                                        , default_choice=0
+                                                        , title='Export Alembic') == 0:
                     writeCamerasToAlembic(node)
-                if isSetAsset(node) and ui.infoWindow('Export Alembic?'
-                                                        , wbuttons=('Yes','No',)
-                                                        , wdefault_choice=0
-                                                        , wtitle='Export Alembic') == 0:
+                if isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
+                                                        , buttons=('Yes','No',)
+                                                        , default_choice=0
+                                                        , title='Export Alembic') == 0:
                     writeSetToAlembic(node)
-                ui.infoWindow("Checkin Successful!")
+                hou.ui.displayMessage("Checkin Successful!")
             else:
                 logname, realname = amu.lockedBy(info[3].encode('utf-8'))
                 whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
                 errstr = 'Cannot checkin asset. Locked by: \n\n' + whoLocked
-                ui.infoWindow(errstr, wtitle='Asset Locked', msev=messageSeverity.Error)
+                hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
         else:
-            ui.infoWindow("Already checked in.")
+            hou.ui.displayMessage("Already checked in.")
 
 def discard(node = None):
     updateDB()
     if not isDigitalAsset(node):
-        ui.infoWindow("Not a Digital Asset.")
+        hou.ui.displayMessage("Not a Digital Asset.")
     else:
         libraryPath = node.type().definition().libraryFilePath()
         filename = os.path.basename(libraryPath)
         info = getFileInfo(filename)
         if info == None:
-            ui.infoWindow("OTL not in globals folder. Can not revert.")
+            hou.ui.displayMessage("OTL not in globals folder. Can not revert.")
         elif info[2]:
             if not node.isLocked() and info[3] == USERNAME:
                 newfilepath = os.path.join(OTLDIR, filename)
@@ -475,7 +472,7 @@ def discard(node = None):
                 node.destroy()
                 hou.node('/obj').createNode(createMe)
                 unlockOTL(filename)
-                ui.infoWindow("Revert Successful!")
+                hou.ui.displayMessage("Revert Successful!")
 
 def formatName(name):
     name = name.strip()
@@ -498,9 +495,14 @@ def listContainers():
 def newContainer(hpath):
     templateNode = hou.node(hpath).createNode("containerTemplate")
     templateNode.hide(True)
-    resp = ui.inputWindow("Enter the New Operator Label", wtitle="OTL Label")
-    if resp != None and resp.strip() != '':
-        name = formatName(resp)
+    # resp = ui.inputWindow("Enter the New Operator Label", wtitle="OTL Label")
+    response = hou.ui.readInput("Enter the New Operator Label", buttons=('Ok', 'Cancel'), title="OTL Label")
+    if response[0]==0:
+        name = response[1]
+    else:
+        name = None
+    if name != None and name.strip() != '':
+        name = formatName(name)
         filename = name.replace(' ', '_')
         newfilepath = os.path.join(OTLDIR, filename+'.otl')
         if not os.path.exists(newfilepath):
@@ -511,7 +513,7 @@ def newContainer(hpath):
             fileutil.clobberPermissions(newfilepath)
             newnode = hou.node(hpath).createNode(filename)
         else:
-            ui.infoWindow("Asset by that name already exists. Cannot create asset.", wtitle='Asset Name', msev=messageSeverity.Error)
+            hou.ui.displayMessage("Asset by that name already exists. Cannot create asset.", title='Asset Name', severity=hou.severityType.Error)
         
     # clean up
     templateNode.destroy()
@@ -544,7 +546,7 @@ def rename(node = None):
     updateDB()
     if node != None:
         if not isDigitalAsset(node):
-            ui.infoWindow("Not a Digital Asset.")
+            hou.ui.displayMessage("Not a Digital Asset.")
         else:
             if isContainer(node):
                 oldlibraryPath = node.type().definition().libraryFilePath()
@@ -555,21 +557,22 @@ def rename(node = None):
                 dependents = getAssetDependents(oldAssetName)
 
                 if dependents:
-                    ui.infoWindow('The following assets are depenent on this asset: \n\n'+printList(dependents)+'\nModify these assets first before attempting to rename again!!', wtitle='Can NOT rename!', msev=messageSeverity.Error)
+                    hou.ui.displayMessage('The following assets are depenent on this asset: \n\n'+printList(dependents)+'\nModify these assets first before attempting to rename again!!', title='Can NOT rename!', severity=hou.severityType.Error)
                     return
 
                 info = getFileInfo(oldfilename)
                 if not info[2]:
-                    if ui.passwordWindow('r3n@m3p@ssw0rd', wmessage='Enter the rename password...'):
-                        resp = ui.inputWindow("Enter the New Operator Label", wtitle="Rename OTL")
+                    #TODO: replace ui function
+                    if ui.passwordWindow('r3n@m3p@ssw0rd', 'Enter the rename password...'):
+                        resp = hou.ui.displayMessage("Enter the New Operator Label", title="Rename OTL")
                         if resp != None and resp.strip() != '':
                             name = formatName(resp)
                             newfilename = name.replace(' ', '_')
                             newfilepath = os.path.join(OTLDIR, newfilename+'.otl')
                             if os.path.exists(newfilepath):
-                                ui.infoWindow("Asset by that name already exists. Cannot rename asset.", wtitle='Asset Name', msev=messageSeverity.Error)
+                                hou.ui.displayMessage("Asset by that name already exists. Cannot rename asset.", title='Asset Name', severity=hou.severityType.Error)
                             elif not amu.canRename(assetDirPath, newfilename):
-                                ui.infoWindow("Asset checked out in Maya. Cannot rename asset.", wtitle='Asset Name', msev=messageSeverity.Error)
+                                hou.ui.displayMessage("Asset checked out in Maya. Cannot rename asset.", title='Asset Name', severity=hou.severityType.Error)
                             else:
                                 node.type().definition().copyToHDAFile(newfilepath, new_name=newfilename, new_menu_name=name)
                                 hou.hda.installFile(newfilepath, change_oplibraries_file=True)
@@ -582,9 +585,9 @@ def rename(node = None):
                     logname, realname = amu.lockedBy(info[3].encode('utf-8'))
                     whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
                     errstr = 'Cannot checkout asset. Locked by: \n\n' + whoLocked
-                    ui.infoWindow(errstr, wtitle='Asset Locked', msev=messageSeverity.Error)
+                    hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
     else:
-        ui.infoWindow("Select EXACTLY one node.")
+        hou.ui.displayMessage("Select EXACTLY one node.")
 
 def deleteAsset(node = None):
     """Deletes the selected node. EXACTLY ONE node may be selected, and it MUST be a digital asset.
@@ -594,7 +597,7 @@ def deleteAsset(node = None):
     updateDB()
     if node != None:
         if not isDigitalAsset(node):
-            ui.infoWindow("Not a Digital Asset.", wtitle='Non-Asset Node', msev=messageSeverity.Error)
+            hou.ui.displayMessage("Not a Digital Asset.", title='Non-Asset Node', severity=hou.severityType.Error)
             return
         else:
             if isContainer(node):
@@ -605,7 +608,7 @@ def deleteAsset(node = None):
                 dependents = getAssetDependents(oldAssetName)
 
                 if dependents:
-                    ui.infoWindow('The following assets are depenent on this asset: \n\n'+printList(dependents)+'\nModify these assets first before attempting to delete again!!', wtitle='Can NOT delete!', msev=messageSeverity.Error)
+                    hou.ui.displayMessage('The following assets are depenent on this asset: \n\n'+printList(dependents)+'\nModify these assets first before attempting to delete again!!', title='Can NOT delete!', severity=hou.severityType.Error)
                     return
 
                 info = getFileInfo(oldfilename)
@@ -613,16 +616,17 @@ def deleteAsset(node = None):
                     logname, realname = amu.lockedBy(info[3].encode('utf-8'))
                     whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
                     errstr = 'Cannot delete asset. Locked by: \n\n' + whoLocked
-                    ui.infoWindow(errstr, wtitle='Asset Locked', msev=messageSeverity.Error)
+                    hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
                     return
 
                 if not amu.canRemove(assetDirPath):
-                    ui.infoWindow("Asset currently checked out in Maya. Cannot delete asset.", wtitle='Maya Lock', msev=messageSeverity.Error)
+                    hou.ui.displayMessage("Asset currently checked out in Maya. Cannot delete asset.", title='Maya Lock', severity=hou.severityType.Error)
                     return
 
                 message = "The following paths and files will be deleted:\n" + assetDirPath + "\n" + oldlibraryPath
-                ui.infoWindow(message, wtitle='Asset Deleted', msev=messageSeverity.Message)
+                hou.ui.displayMessage(message, title='Asset Deleted', severity=hou.severityType.Error)
 
+                #TODO remove ui module
                 if ui.passwordWindow('d3l3t3p@ssw0rd', wmessage='Enter the deletion password ...'):
                     node.destroy()
                     hou.hda.uninstallFile(oldlibraryPath, change_oplibraries_file=False)
@@ -630,31 +634,35 @@ def deleteAsset(node = None):
                         amu.removeFolder(assetDirPath)
                         os.remove(oldlibraryPath)
                     except Exception as ex:
-                        ui.infoWindow("The following exception occured:\n" + str(ex), wtitle='Exception Occured', msev=messageSeverity.Error)
+                        hou.ui.displayMessage("The following exception occured:\n" + str(ex), title='Exception Occured', severity=hou.severityType.Error)
                         return
     else:
-        ui.infoWindow("Select EXACTLY one node.")
+        hou.ui.displayMessage("Select EXACTLY one node.")
         return
 
 def newGeo(hpath):
     templateNode = hou.node(hpath).createNode("geometryTemplate")
     alist = listContainers()
-    resp = ui.inputWindow("Enter the New Operator Label", wtitle="OTL Label")
+    response = hou.ui.readInput("Enter the New Operator Label", title="OTL Label", buttons=('OK', 'Cancel'))
     filename = str()
-    if resp != None and resp.strip() != '':
-        name = formatName(resp)
+    if response[0]==0:
+        name = response[1]
+    else:
+        name = None
+    if name != None and name.strip() != '':
+        name = formatName(name)
         filename = name.replace(' ', '_')
         templateNode.setName(filename, unique_name=True)
-    answer = ui.listWindow(alist, wmessage='Select Container Asset this belongs to:')
+    answer = hou.ui.selectFromList(alist, message='Select Container Asset this belongs to:', exclusive=True)
     if not answer:
-        ui.infoWindow("Geometry must be associated with a container asset! Geometry asset not created.", msev=messageSeverity.Error)
+        hou.ui.displayMessage("Geometry must be associated with a container asset! Geometry asset not created.", severity=hou.severityType.Error)
         templateNode.destroy()
         return
     answer = answer[0]
-    sdir = '$JOB/PRODUCTION/assets/'
-    gfile = ui.fileChooser(start_dir=sdir + alist[answer]+'/geo', wtitle='Choose Geometry', mode=fileMode.Read, extensions='*.bjson, *.obj')
+    sdir = os.environ['ASSETS_DIR']
+    gfile = hou.ui.selectFile(start_directory=os.path.join(sdir, alist[answer]+'/geo'), title='Choose Geometry', chooser_mode=hou.fileChooserMode.Read, pattern='*.bjson, *.obj')
     if len(gfile) > 4 and gfile[:4] != '$JOB':
-        ui.infoWindow("Path must start with '$JOB'. Default geometry used instead.", wtitle='Path Name', msev=messageSeverity.Error)
+        hou.ui.displayMessage("Path must start with '$JOB'. Default geometry used instead.", title='Path Name', severity=hou.severityType.Error)
         templateNode.destroy()
     elif gfile != '':
         hou.parm(templateNode.path() + '/read_file/file').set(gfile)
@@ -669,7 +677,8 @@ def determineHPATH():
 def new():
     updateDB()
     otb = ('Container', 'Geometry', 'Cancel')
-    optype = ui.infoWindow("Choose operator type.", wbuttons=otb, wtitle='Asset Type')
+    # optype = ui.infoWindow("Choose operator type.", wbuttons=otb, wtitle='Asset Type')
+    optype = hou.ui.displayMessage("Choose operator type.", buttons=otb, title='Asset Type')
     hpath = determineHPATH()
     if optype == 0:
         newContainer(hpath)
@@ -693,9 +702,9 @@ def refresh(node = None):
     hou.hscript("otrefresh -r") # Refresh all definitions first
     
     if node == None or hasattr(node, "__len__"):
-        ui.infoWindow("Select EXACTLY one node.")
+        hou.ui.displayMessage("Select EXACTLY one node.")
     elif not isEditableAsset(node):
-        ui.infoWindow('Not an "Editable Asset".')
+        hou.ui.displayMessage('Not an "Editable Asset".')
     else:
         npath = os.path.dirname(node.path())
         dopple = hou.node(npath).createNode(node.type().name())
@@ -704,7 +713,7 @@ def refresh(node = None):
                 if c.name() == dc.name() and isinstance(c, hou.ObjNode):
                     c.setParmTransform(dc.parmTransform())
         dopple.destroy()
-        ui.infoWindow('Refresh successful.')
+        hou.ui.displayMessage('Refresh successful.')
 
 # TODO: This function probably needs to be removed.
 def add(node = None):
@@ -713,7 +722,7 @@ def add(node = None):
     updateDB()
     if node != None:
         if node.type().definition() is None:
-            ui.infoWindow("Not a Digital Asset.")
+            hou.ui.displayMessage("Not a Digital Asset.")
         else:
             libraryPath = node.type().definition().libraryFilePath()
             filename = os.path.basename(libraryPath)
@@ -722,11 +731,11 @@ def add(node = None):
                 saveOTL(node)
                 moveToOtlDir(node, filename)
                 addOTL(filename)
-                ui.infoWindow("Add Successful!")
+                hou.ui.displayMessage("Add Successful!")
             else:
-                ui.infoWindow("Already Added")
+                hou.ui.displayMessage("Already Added")
     else:
-        ui.infoWindow("Select EXACTLY one node.")
+        hou.ui.displayMessage("Select EXACTLY one node.")
 
 
 def convert_texture(userTextureMap, assetImageDir, folder_name=''):
@@ -753,7 +762,7 @@ def convert_texture(userTextureMap, assetImageDir, folder_name=''):
         try:
             subprocess.check_call(args)
         except subprocess.CalledProcessError as e:
-            ui.infoWindow('Failed to convert texture. The following error occured:\n' + str(e))        
+            hou.ui.displayMessage('Failed to convert texture. The following error occured:\n' + str(e))        
             return
         didgamma = '\nIt has been gamma corrected.'
     else:
@@ -774,7 +783,7 @@ def convert_texture(userTextureMap, assetImageDir, folder_name=''):
     try:
         subprocess.check_call(args)
     except subprocess.CalledProcessError as e:
-        ui.infoWindow('Failed to convert texture. The following error occured:\n' + str(e))
+        hou.ui.displayMessage('Failed to convert texture. The following error occured:\n' + str(e))
     else:
         # Rename texture and move into production pipeline 
         newTextureName = userFileName + '.rat'
@@ -786,7 +795,7 @@ def convert_texture(userTextureMap, assetImageDir, folder_name=''):
             shutil.move(finalTexture, newfilepath)  
         except Exception as e:
             os.remove(finalTexture)
-            ui.infoWindow('Failed to move texture. The following error occured:\n' + str(e), msev=messageSeverity.Error)
+            hou.ui.displayMessage('Failed to move texture. The following error occured:\n' + str(e), severity=hou.severityType.Error)
         finally:
             if convertedTexture != userTextureMap:
                 os.remove(convertedTexture)
@@ -800,7 +809,7 @@ def newTexture():
         selections.append(os.path.basename(aL)) 
         # sort alphabetically
     selections.sort()
-    answer = ui.listWindow(selections, wmessage='Choose an asset to add/update textures for')
+    answer = hou.ui.selectFromList(selections, message='Choose an asset to add/update textures for', exclusive=True)
     if answer:
         answer = answer[0]
         assetName = selections[answer]
@@ -808,7 +817,7 @@ def newTexture():
 
         # Allow user to choose texture map in user local directory   
         userDirectory = os.environ['USER_DIR']
-        userSelection = ui.fileChooser(start_dir=userDirectory, wtitle='Select texture map, or folder of texture maps', image=True, extensions='*.jpg,*.jpeg,*.tiff,*.tif,*.png,*.exr') 
+        userSelection = hou.ui.selectFile(start_directory=userDirectory, title='Select texture map, or folder of texture maps', image_chooser=True, pattern='*.jpg,*.jpeg,*.tiff,*.tif,*.png,*.exr') 
         
         #Allow user to search for texture in any directory
         userSelection = os.path.expandvars(userSelection)
@@ -846,7 +855,7 @@ def getInfo(node):
             message = 'Checked out by '+realname+' ('+logname+')'
         else:
             message = 'Not checked out.'
-        ui.infoWindow(message, wtitle='Node Info')
+        hou.ui.displayMessage(message, title='Node Info')
 
 # make getNodeInfo an alias of getInfo
 getNodeInfo = getInfo

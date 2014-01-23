@@ -36,7 +36,7 @@ def _writeConfigFile(filePath, configParser):
        configParser.write(configFile)
 
 
-def createNodeInfoFile(dirPath):
+def createNodeInfoFile(dirPath, toKeep):
 	"""
 	Creates the .nodeInfo file in the directory specified by dirPath.
 	The Node:Type must be set by concrete nodes
@@ -53,6 +53,7 @@ def createNodeInfoFile(dirPath):
 	
 	nodeInfo.add_section('Versioning')
 	nodeInfo.set('Versioning', 'LatestVersion', '0')
+	nodeInfo.set('Versioning', 'VersionsToKeep', str(toKeep))
 	nodeInfo.set('Versioning', 'Locked', 'False')
 	nodeInfo.set('Versioning', 'LastCheckoutTime', timestamp)
 	nodeInfo.set('Versioning', 'LastCheckoutUser', username)
@@ -61,16 +62,16 @@ def createNodeInfoFile(dirPath):
 	
 	_writeConfigFile(os.path.join(dirPath, ".nodeInfo"), nodeInfo)
 	
-def addVersionedFolder(parent, name):
+def addVersionedFolder(parent, name, toKeep):
 	new_dir = os.path.join(parent, name)
-	os.makedirs(os.path.join(new_dir, "src", "v0"))
+	os.makedirs(os.path.join(new_dir, "src", "v000"))
 	os.makedirs(os.path.join(new_dir, "stable"))
 	os.makedirs(os.path.join(new_dir, 'stable', 'backups'))
 
 	#os.symlink(os.path.join(new_dir, 'stable', getNullReference()), os.path.join(new_dir, 'stable','stable'))
 	#TODO change for stable selection
 	#os.symlink(getNullReference(), os.path.join(new_dir, 'stable','stable'))
-	createNodeInfoFile(new_dir)
+	createNodeInfoFile(new_dir, toKeep)
 	return new_dir
 
 def addProjectFolder(parent, name):
@@ -81,10 +82,11 @@ def addProjectFolder(parent, name):
 def createNewAssetFolders(parent, name):
 	new_dir = os.path.join(parent, name)
 	addProjectFolder(parent, name)
-	addVersionedFolder(new_dir, 'model')
-	addVersionedFolder(new_dir, 'rig')
+	addVersionedFolder(new_dir, 'model', 5)
+	addVersionedFolder(new_dir, 'rig', -1)
 	os.makedirs(os.path.join(new_dir, "geo"))
 	os.makedirs(os.path.join(new_dir, "images"))
+	os.makedirs(os.path.join(new_dir, "reference"))
 	return new_dir
 
 def createNewShotFolders(parent, name):
@@ -94,9 +96,9 @@ def createNewShotFolders(parent, name):
 	new_dir = os.path.join(parent, name)
 	print 'creating :'+new_dir
 	addProjectFolder(parent, name)
-	addVersionedFolder(new_dir, 'animation')
-	addVersionedFolder(new_dir, 'lighting')
-	addVersionedFolder(new_dir, 'compositing')
+	addVersionedFolder(new_dir, 'animation', -1)
+	addVersionedFolder(new_dir, 'lighting', 5)
+	addVersionedFolder(new_dir, 'compositing', 5)
 	addProjectFolder(new_dir, 'animation_cache')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
@@ -228,7 +230,7 @@ def setVersion(dirPath, version):
     
     nodeInfo = ConfigParser()
     nodeInfo.read(os.path.join(chkInDest, ".nodeInfo"))
-    newVersionPath = os.path.join(chkInDest, "src", "v"+str(version))
+    newVersionPath = os.path.join(chkInDest, "src", "v"+("%03d" % version))
 
     if lockedbyme == False:
         print "Cannot overwrite locked folder."
@@ -337,8 +339,8 @@ def checkout(coPath, lock):
 	nodeInfo = ConfigParser()
 	nodeInfo.read(os.path.join(coPath, ".nodeInfo"))
 	if nodeInfo.get("Versioning", "locked") == "False":
-		version = nodeInfo.get("Versioning", "latestversion")
-		toCopy = os.path.join(coPath, "src", "v"+version)
+		version = nodeInfo.getint("Versioning", "latestversion")
+		toCopy = os.path.join(coPath, "src", "v"+("%03d" % version))
 		dest = getCheckoutDest(coPath)
 		
 		if(os.path.exists(toCopy)):
@@ -469,8 +471,9 @@ def checkin(toCheckin, isAnim):
 	nodeInfo = ConfigParser()
 	nodeInfo.read(os.path.join(chkInDest, ".nodeInfo"))
 	locked = nodeInfo.getboolean("Versioning", "locked")
+	toKeep = nodeInfo.getint("Versioning", "Versionstokeep")
 	newVersion = nodeInfo.getint("Versioning", "latestversion") + 1
-	newVersionPath = os.path.join(chkInDest, "src", "v"+str(newVersion))
+	newVersionPath = os.path.join(chkInDest, "src", "v"+("%03d" % newVersion))
 	
 	if not canCheckin(toCheckin):
 		print "Can not overwrite locked folder."
@@ -487,8 +490,8 @@ def checkin(toCheckin, isAnim):
 	_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
 	
 	#print glob.glob(os.path.join(chkInDest, "src", "*"))
-	if not isAnim:
-		purge(os.path.join(chkInDest, "src"), newVersion - 5)
+	if toKeep > 0:
+		purge(os.path.join(chkInDest, "src"), newVersion - toKeep)
 
 	# Clean up
 	shutil.rmtree(toCheckin)
@@ -509,8 +512,8 @@ def getAvailableInstallFiles(vDirPath):
 	
 	nodeInfo = ConfigParser()
 	nodeInfo.read(os.path.join(vDirPath, ".nodeInfo"))
-	version = nodeInfo.get("Versioning", "latestversion")
-	latest = os.path.join(vDirPath, "src", "v"+version)
+	version = nodeInfo.getint("Versioning", "latestversion")
+	latest = os.path.join(vDirPath, "src", "v"+("%03d" % version))
 	
 	files = glob.glob(os.path.join(latest,'*'))
 	print files

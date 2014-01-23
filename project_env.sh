@@ -39,7 +39,7 @@ export PROJECT_TOOLS=${JOB}/ramshorn-tools
 export PATH=${PROJECT_TOOLS}/standalone_scripts:$PATH
 
 # Production directory
-export PRODUCTION_DIR=${JOB}/PRODUCTION
+export PRODUCTION_DIR=${JOB}/production
 
 # User directory for checkout files, testing, ect.
 export USER_DIR=${JOB}/users/${USER}
@@ -60,7 +60,7 @@ export OTLS_DIR=${PRODUCTION_DIR}/otls
 export HTOOLS_DIR=${PROJECT_TOOLS}/houdini-tools
 
 # Append to python path so batch scripts can access our modules
-export PYTHONPATH=/usr/autodesk/maya2012-x64/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:${PROJECT_TOOLS}:${PROJECT_TOOLS}/asset_manager:${PROJECT_TOOLS}/python2.6libs:${PROJECT_TOOLS}/nuke-tools/python:${PYTHONPATH}
+export PYTHONPATH=/usr/autodesk/maya2012-x64/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:${PROJECT_TOOLS}:${PROJECT_TOOLS}/asset_manager:${PROJECT_TOOLS}/houdini-tools/python2.6libs:${PROJECT_TOOLS}/nuke-tools/python:${PYTHONPATH}
 
 # Issue submission website
 export ISSUE_URL="https://docs.google.com/forms/d/1biz6BLm9Z7Z53yNVgPB6fBb4zgGGaXh4JMKudu8lGTE/viewform"
