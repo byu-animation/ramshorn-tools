@@ -1,7 +1,7 @@
 #! /usr/local/Nuke6.3v9/Nuke6.3 -nx
 version 6.3 v9
 Gizmo {
- label "Welcome to Owned"
+ label "Welcome to Ramshorn"
 }
  Input {
   inputs 0
@@ -10,7 +10,7 @@ Gizmo {
   ypos -148
  }
  Text {
-  message "Welcome to Owned!"
+  message "Welcome to Ramshorn!"
   font /usr/share/fonts/vlgothic/VL-Gothic-Regular.ttf
   size 35.5
   yjustify center
