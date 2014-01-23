@@ -104,6 +104,21 @@ def createNewShotFolders(parent, name):
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
 
+def createNewPrevisFolders(parent, name):
+	# This is basically the same as "createNewShotFolders" method
+	# doesn't include a lighting folder; may need to add/remove additional folders for production
+	if parent != os.environ['PREVIS_DIR']:
+		raise Exception("Shot folders must be created in "+os.environ['PREVIS_DIR'])
+	
+	new_dir = os.path.join(parent, name)
+	print 'creating :'+new_dir
+	addProjectFolder(parent, name)
+	addVersionedFolder(new_dir, 'animation', -1)
+	addVersionedFolder(new_dir, 'compositing', 5)
+	addProjectFolder(new_dir, 'animation_cache')
+	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
+	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
+
 def isEmptyFolder(dirPath):
 	return not bool(glob.glob(os.path.join(dirPath, '*')))
 

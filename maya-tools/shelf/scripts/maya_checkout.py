@@ -8,7 +8,7 @@ import os, glob
 import utilities as amu
 
 CHECKOUT_WINDOW_WIDTH = 330
-CHECKOUT_WINDOW_HEIGHT = 600
+CHECKOUT_WINDOW_HEIGHT = 620
 
 def maya_main_window():
 	ptr = omu.MQtUtil.mainWindow()
@@ -27,28 +27,33 @@ class CheckoutDialog(QDialog):
 	def create_layout(self):
 		#Create the selected item list
 		self.selection_list = QListWidget()
-		self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+		self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)	
 
-		#Create Models, Rig, Animation		
-		radio_button_group = QVBoxLayout()
+		#Create Models, Rig, Animation, Previs
+		radio_button_group = QHBoxLayout()
 		self.model_radio = QRadioButton('Model')
 		self.rig_radio = QRadioButton('Rig')
 		self.animation_radio = QRadioButton('Animation')
+		self.previs_radio = QRadioButton('Previs')
 		self.model_radio.setChecked(True)
 		radio_button_group.setSpacing(2)
 		radio_button_group.addWidget(self.model_radio)
 		radio_button_group.addWidget(self.rig_radio)
 		radio_button_group.addWidget(self.animation_radio)
+		radio_button_group.addWidget(self.previs_radio)
 
-		#Create New Animation button
-		self.new_animation_button = QPushButton('New Animation')
+		#Create Label to hold asset info
+		self.asset_info_label = QLabel("test")
+		self.asset_info_label.setWordWrap(True)
+
+		#Create New Shot button; used by Animation & Previs modes
+		self.new_shot_button = QPushButton('New Shot')
 		
 		#Create Unlock button
 		self.unlock_button = QPushButton('Unlock')
 
 		#Create Select and Cancel buttons
 		self.select_button = QPushButton('Select')
-		self.info_button = QPushButton('Get Info')
 		self.cancel_button = QPushButton('Cancel')
 		
 		#Create button layout
@@ -57,7 +62,6 @@ class CheckoutDialog(QDialog):
 		button_layout.addStretch()
 	
 		button_layout.addWidget(self.select_button)
-		button_layout.addWidget(self.info_button)
 		button_layout.addWidget(self.unlock_button)
 		button_layout.addWidget(self.cancel_button)
 		
@@ -65,9 +69,11 @@ class CheckoutDialog(QDialog):
 		main_layout = QVBoxLayout()
 		main_layout.setSpacing(2)
 		main_layout.setMargin(2)
-		main_layout.addWidget(self.selection_list)		
+		main_layout.addWidget(self.selection_list)
+		#add text box to main layout to display info when asset is selected
+		main_layout.addWidget(self.asset_info_label)		
 		main_layout.addLayout(radio_button_group)
-		main_layout.addWidget(self.new_animation_button)
+		main_layout.addWidget(self.new_shot_button)
 		main_layout.addLayout(button_layout)
 		
 		self.setLayout(main_layout)
@@ -82,15 +88,17 @@ class CheckoutDialog(QDialog):
 		self.connect(self.model_radio, SIGNAL('clicked()'), self.refresh)
 		self.connect(self.rig_radio, SIGNAL('clicked()'), self.refresh)
 		self.connect(self.animation_radio, SIGNAL('clicked()'), self.refresh)
-		self.connect(self.new_animation_button, SIGNAL('clicked()'), self.new_animation)
+		self.connect(self.previs_radio, SIGNAL('clicked()'), self.refresh)
+		self.connect(self.new_shot_button, SIGNAL('clicked()'), self.new_animation)
 		self.connect(self.unlock_button, SIGNAL('clicked()'), self.unlock)
 		self.connect(self.select_button, SIGNAL('clicked()'), self.checkout)
-		self.connect(self.info_button, SIGNAL('clicked()'), self.show_node_info)
 		self.connect(self.cancel_button, SIGNAL('clicked()'), self.close_dialog)
 	
 	def update_selection(self, selection):
 		#Remove all items from the list before repopulating
 		self.selection_list.clear()
+		#Clear info displayed about asset
+		self.asset_info_label.clear()
 		
 		#Add the list to select from
 		for s in selection:
@@ -100,24 +108,47 @@ class CheckoutDialog(QDialog):
 		self.selection_list.sortItems(0)
 	
 	def refresh(self):
-		if self.animation_radio.isChecked():
-			self.new_animation_button.setEnabled(True)
-			selections = glob.glob(os.path.join(os.environ['SHOTS_DIR'], '*'))
-		else:
-			self.new_animation_button.setEnabled(False)
-			selections = glob.glob(os.path.join(os.environ['ASSETS_DIR'], '*'))
+		# updates selection list and toggles the "New Shot" button
+		self.new_shot_button.setEnabled(self.animation_radio.isChecked() or self.previs_radio.isChecked())
+		selections = glob.glob(os.path.join(self.get_checkout_location(), '*'))
 		self.update_selection(selections)
 	
 	def new_animation(self):
-		text, ok = QInputDialog.getText(self, 'New Animation', 'Enter seq_shot (ie: a01)')
+		text, ok = QInputDialog.getText(self, 'New Shot', 'Enter seq_shot (ie: a01)')
 		if ok:
 			text = str(text)
-			amu.createNewShotFolders(os.environ['SHOTS_DIR'], text)
+			if self.previs_radio.isChecked():
+				amu.createNewPrevisFolders(os.environ['PREVIS_DIR'], text)
+			elif self.animation_radio.isChecked():
+				amu.createNewShotFolders(os.environ['SHOTS_DIR'], text)
 		self.refresh()
 		return
 	
 	def get_filename(self, parentdir):
 		return os.path.basename(os.path.dirname(parentdir))+'_'+os.path.basename(parentdir)
+
+	def get_asset_path(self):
+		# returns the path for a single asset
+		asset_name = str(self.current_item.text())
+		if self.model_radio.isChecked():
+			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
+		elif self.rig_radio.isChecked():
+			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
+		elif self.animation_radio.isChecked():
+			filePath = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
+		elif self.previs_radio.isChecked():
+			filePath = os.path.join(os.environ['PREVIS_DIR'], asset_name, 'animation')
+		return filePath
+
+	def get_checkout_location(self):
+		# returns the environment path for this checkout mode
+		if self.model_radio.isChecked() or self.rig_radio.isChecked():
+			return os.environ['ASSETS_DIR']
+		if self.animation_radio.isChecked():
+			return os.environ['SHOTS_DIR']
+		if self.previs_radio.isChecked():
+			return os.environ['PREVIS_DIR']
+		raise Exception("Unimplemented checkout mode...");
 
 	def showIsLockedDialog(self):
 		return cmd.confirmDialog(title = 'Already Unlocked'
@@ -145,16 +176,7 @@ class CheckoutDialog(QDialog):
 
 
 	def unlock(self):
-
-		asset_name = str(self.current_item.text())
-
-		if self.model_radio.isChecked():
-			toUnlock = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-		elif self.rig_radio.isChecked():
-			toUnlock = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-		elif self.animation_radio.isChecked():
-			toUnlock = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
-		
+		toUnlock = self.get_asset_path()		
 		if amu.isLocked(toUnlock):
 
 			if self.showConfirmUnlockDialog() == 'No':
@@ -177,13 +199,7 @@ class CheckoutDialog(QDialog):
 		if not curfilepath == '':
 			cmd.file(save=True, force=True)
 
-		asset_name = str(self.current_item.text())
-		if self.model_radio.isChecked():
-			toCheckout = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-		elif self.rig_radio.isChecked():
-			toCheckout = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-		elif self.animation_radio.isChecked():
-			toCheckout = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
+		toCheckout = self.get_asset_path()
 
 		try:
 			destpath = amu.checkout(toCheckout, True)
@@ -217,15 +233,11 @@ class CheckoutDialog(QDialog):
 	
 	def set_current_item(self, item):
 		self.current_item = item
+		self.show_node_info()
 		
 	def show_node_info(self):
 		asset_name = str(self.current_item.text())
-		if self.model_radio.isChecked():
-			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-		elif self.rig_radio.isChecked():
-			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-		elif self.animation_radio.isChecked():
-			filePath = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
+		filePath = self.get_asset_path();
 		node_info = amu.getVersionedFolderInfo(filePath)
 		checkout_str = node_info[0]
 		if(checkout_str ==''):
@@ -233,12 +245,9 @@ class CheckoutDialog(QDialog):
 		else:
 			checkout_str = 'Checked out by '+node_info[0]+'. '
 		checkin_str = 'Last checked in by '+node_info[1]+' on '+node_info[2]
-		cmd.confirmDialog(  title          = asset_name+" Info"
-                                   , message       = checkout_str+checkin_str
-                                   , button        = ['Ok']
-                                   , defaultButton = 'Ok'
-                                   , cancelButton  = 'Ok'
-                                   , dismissString = 'Ok')
+		
+		print 'should clear label'
+		self.asset_info_label.setText(checkout_str+checkin_str)
 		
 def go():
 	dialog = CheckoutDialog()

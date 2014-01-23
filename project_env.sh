@@ -53,6 +53,9 @@ export ASSETS_DIR=${PRODUCTION_DIR}/assets
 # Root directory for sequences
 export SHOTS_DIR=${PRODUCTION_DIR}/shots
 
+# Root directory for previsualization sequences
+export PREVIS_DIR=${PRODUCTION_DIR}/previs
+
 # Directory for otls
 export OTLS_DIR=${PRODUCTION_DIR}/otls
 
@@ -92,6 +95,12 @@ buildProjectDirs()
     if [ ! -d "$SHOTS_DIR" ]; then
         echo "making shots dir"
         mkdir -p "$SHOTS_DIR"
+    fi
+
+    # Create Root directory for previs animation
+    if [ ! -d "$PREVIS_DIR" ]; then
+        echo "making previs dir"
+        mkdir -p "$PREVIS_DIR"
     fi
 
     # Create Directory for otls

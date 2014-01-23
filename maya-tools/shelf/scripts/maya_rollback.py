@@ -31,8 +31,9 @@ class RollbackDialog(QDialog):
         self.selection_list = QListWidget()
         self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding) 
 
-        #Create Select and Cancel buttons
+        #Create Tag, Select, and Cancel buttons
         self.help_button = QPushButton('Help')
+	self.tag_button = QPushButton('Tag')
         self.checkout_button = QPushButton('Checkout')
         self.cancel_button = QPushButton('Cancel')
 
@@ -40,6 +41,7 @@ class RollbackDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.setSpacing(2)
         button_layout.addStretch()
+	button_layout.addWidget(self.tag_button)
         button_layout.addWidget(self.checkout_button)
         button_layout.addWidget(self.cancel_button)
 
@@ -61,9 +63,10 @@ class RollbackDialog(QDialog):
             
         #Connect the buttons
         self.connect(self.help_button, SIGNAL('clicked()'), self.help_dialog)
+	self.connect(self.tag_button, SIGNAL('clicked()'), self.rename_tagged_version)
         self.connect(self.checkout_button, SIGNAL('clicked()'), self.checkout_version)
         self.connect(self.cancel_button, SIGNAL('clicked()'), self.close_dialog)
-
+	
     def update_selection(self, selection):
         #Remove all items from the list before repopulating
         self.selection_list.clear()
@@ -122,6 +125,14 @@ class RollbackDialog(QDialog):
                                    , defaultButton = 'Ok'
                                    , cancelButton  = 'Ok'
                                    , dismissString = 'Ok')
+    def rename_tagged_version(self):
+        return cmd.promptDialog(  title           = 'Tagg it like its hot'
+                                   , message       = 'Choose a good naming convention. Something you will remember... Forrrreeeeverrrrrr'
+                                   , button        = ['Done' , 'NVM']
+				   , defaultButton = 'Done'
+                                )
+        if result == 'Done':
+       		 taggedVersion = cmd.promptDialog(query=True, text=True)
 
     # def open_version(self):
     #     dialogResult = self.verify_open_version_dialog()
@@ -170,6 +181,17 @@ class RollbackDialog(QDialog):
                 cmd.file(rename=toOpen)
                 cmd.file(save=True, force=True)
             self.close_dialog()
+
+    def tag_version(self):
+        dialogResult = self.rename_tagged_version()
+        filePath = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(self.ORIGINAL_FILE_NAME)))
+        findPath = amu.getCheckinDest(filePath)
+        print findPath
+	# Doesn't work yet sorry :(    shutil.move(findPath, taggedVersion)
+		# When they click 'Done' it will query their text and put it undertagged Version. But the maya command asks to put strings in quotations
+		
+
+
 
     # too much power, not enough responsibility
     # def rollback(self):
