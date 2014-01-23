@@ -313,7 +313,6 @@ def discardLightingFile():
 def checkout(node):
     """Checks out the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
         The node must already exist in the database."""
-    updateDB()
     if not isDigitalAsset(node):
         hou.ui.displayMessage("Not a Digital Asset.")
     else:
@@ -345,23 +344,6 @@ def checkout(node):
         saveOTL(node)
         node.allowEditingOfContents()
         hou.ui.displayMessage("Checkout Successful!", title='Success!')
-
-        # info = getFileInfo(filename)
-        # if info == None:
-        #     hou.ui.displayMessage("Add OTL First.")
-        # elif not info[2] or (info[2] and info[3].encode('utf-8') == USERNAME):
-        #     print asset_name
-        #     copyToUsrDir(node, filename)
-        #     lockAsset(node, True)
-        #     saveOTL(node)
-        #     node.allowEditingOfContents()
-        #     lockOTL(filename)
-        #     hou.ui.displayMessage("Checkout Successful!", title='Success!')
-        # else:
-        #     logname, realname = amu.lockedBy(info[3].encode('utf-8'))
-        #     whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
-        #     errstr = 'Cannot checkout asset. Locked by: \n\n' + whoLocked
-        #     hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
 
 def isCameraAsset(node):
     return 'cameras' in node.name()
@@ -442,7 +424,6 @@ def writeSetToAlembic(node):
 def checkin(node = None):
     """Checks in the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
         The node must already exist in the database, and USERNAME must have the lock."""
-    # updateDB()
     if not isDigitalAsset(node):
         hou.ui.displayMessage("Not a Digital Asset.")
     else:
@@ -474,58 +455,19 @@ def checkin(node = None):
 
         else:
             hou.ui.displayMessage('Can Not Checkin.')
-        
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # info = getFileInfo(filename)
-        # if info == None:
-        #     hou.ui.displayMessage("Add the OTL first")
-        # elif info[2]:
-        #     if not node.isLocked() and info[3] == USERNAME:
-        #         saveOTL(node) # This save is not strictly necessary since we save again two lines down
-        #         lockAsset(node, False)
-        #         saveOTL(node)
-        #         moveToOtlDir(node, filename)
-        #         unlockOTL(filename)
-        #         if isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
-        #                                                 , buttons=('Yes','No',)
-        #                                                 , default_choice=0
-        #                                                 , title='Export Alembic') == 0:
-        #             writeCamerasToAlembic(node)
-        #         if isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
-        #                                                 , buttons=('Yes','No',)
-        #                                                 , default_choice=0
-        #                                                 , title='Export Alembic') == 0:
-        #             writeSetToAlembic(node)
-        #         hou.ui.displayMessage("Checkin Successful!")
-        #     else:
-        #         logname, realname = amu.lockedBy(info[3].encode('utf-8'))
-        #         whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
-        #         errstr = 'Cannot checkin asset. Locked by: \n\n' + whoLocked
-        #         hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
-        # else:
-        #     hou.ui.displayMessage("Already checked in.")
 
 def discard(node = None):
-    updateDB()
     if not isDigitalAsset(node):
         hou.ui.displayMessage("Not a Digital Asset.")
     else:
         libraryPath = node.type().definition().libraryFilePath()
         filename = os.path.basename(libraryPath)
-        info = getFileInfo(filename)
-        if info == None:
-            hou.ui.displayMessage("OTL not in globals folder. Can not revert.")
-        elif info[2]:
-            if not node.isLocked() and info[3] == USERNAME:
-                newfilepath = os.path.join(OTLDIR, filename)
-                oldfilepath = os.path.join(USERDIR, filename)
-                switchOPLibraries(oldfilepath, newfilepath)
-                os.remove(oldfilepath)
-                createMe = node.type().name()
-                node.destroy()
-                hou.node('/obj').createNode(createMe)
-                unlockOTL(filename)
-                hou.ui.displayMessage("Revert Successful!")
+        toDiscard = os.path.dirname(libraryPath)
+        if amu.isCheckedOutCopyFolder(toDiscard):
+            switchOPLibraries(libraryPath, os.path.join(OTLDIR, filename))
+            node.matchCurrentDefinition()
+            amu.discard(toDiscard)
+            hou.ui.displayMessage("Revert Successful!")
 
 def formatName(name):
     name = name.strip()
@@ -741,7 +683,6 @@ def determineHPATH():
     return hpath
 
 def new():
-    updateDB()
     otb = ('Container', 'Geometry', 'Cancel')
     # optype = ui.infoWindow("Choose operator type.", wbuttons=otb, wtitle='Asset Type')
     optype = hou.ui.displayMessage("Choose operator type.", buttons=otb, title='Asset Type')
