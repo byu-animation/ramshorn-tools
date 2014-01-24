@@ -16,7 +16,7 @@ projectName = "MariPipe"
 def exportMaps():
 	pass		
 # ------------------------------------------------------------------------------
-exportMaps()
+#exportMaps()
 
 
 

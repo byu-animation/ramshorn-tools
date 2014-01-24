@@ -17,4 +17,4 @@ projectName = "MariPipe"
 def OBJUpdate():
 
 # ------------------------------------------------------------------------------
-OBJUpdate()
+#OBJUpdate()
