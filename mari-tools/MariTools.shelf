@@ -1,0 +1,49 @@
+# Coded by Andrew Rasmussen 2013. When it is terrible or breaks blame him. Or bake him pity cookies.\
+
+# ------------------------------------------------------------------------------
+import os
+import glob
+def TextureHookUp():
+        # Reads In Selected Node
+        ReadInNode = None
+        ReadInNodes = hou.selectedNodes()
+        if len(ReadInNodes) == 1:
+                ReadInNode = ReadInNodes[0]
+        ProjectName = os.path.basename(ReadInNode.parm("file").eval()).split(".")[0]
+        print ProjectName
+        GeoGroup = ReadInNode.createOutputNode("group", ProjectName + "Patch1001")
+        GeoGroupParm = GeoGroup.parm("pattern")
+        GeoGroupParm.set("1-1000")
+        NodePath = ReadInNode.path()
+        MasterShop = hou.node(os.path.dirname(NodePath)).createNode("shopnet", ProjectName + "Shop")
+        MasterMaterial = MasterShop.createNode("v_decal", ProjectName + "Mat")
+        MasterMaterialControl = GeoGroup.createOutputNode("material", ProjectName + "ControlMat")
+        # Finds Correct Number of Patches
+        ImagesPath = "/users/animation/rasmusa/MariTestCase/images/BertieBody/"
+        OverideNumber = 0
+        DIFFList = glob.glob(os.path.join(ImagesPath, "*DIFF*"))
+        if len(DIFFList) > 0:
+            OverideNumber += 1
+        BMPList = glob.glob(os.path.join(ImagesPath, "*BMP*"))
+        if len(BMPList) > 0:
+            OverideNumber += 1
+        SPECList = glob.glob(os.path.join(ImagesPath, "*SPEC*"))
+        if len(SPECList) > 0:
+            OverideNumber += 1
+        PatchNumber = len(DIFFList)
+        MasterMaterialControl.parm("num_materials").set(PatchNumber)
+        MasterList = [DIFFList, SPECList, BMPList]
+        for i in range(1, PatchNumber +1):
+            for j in range(1, OverideNumber +1):
+                MasterMaterialControl.parm("group"+ str(i)).set(GeoGroup.parm("crname").eval())
+                MasterMaterialControl.parm("shop_materialpath"+ str(i)).set(MasterMaterialControl.relativePathTo(MasterMaterial))
+                MasterMaterialControl.parm("num_local"+ str(i)).set(OverideNumber)          
+                MasterMaterialControl.parm("local"+ str(i) +"_name"+ str(j)).set("map")  
+                MasterMaterialControl.parm("local"+ str(i) +"_type"+ str(j)).set("string")  
+                MasterMaterialControl.parm("local"+ str(i) +"_sval"+ str(j)).set(MasterList[j-1][i-1])
+
+        print "done"
+        
+
+# ------------------------------------------------------------------------------
+TextureHookUp()
