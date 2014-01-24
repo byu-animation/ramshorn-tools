@@ -9,9 +9,9 @@ import MP_WorkingCodeDIRCreate
 
 # ------------------------------------------------------------------------------
 #GLOBALS & ENVIROMENT VARIABLES
-JOB = "/groups/owned/PRODUCTION/assets/"
+#JOB = "/groups/owned/PRODUCTION/assets/"
 
-projectName = "MariPipe"
+#projectName = "MariPipe"
 
 # ------------------------------------------------------------------------------
 def mariProjectCreate():
@@ -21,13 +21,13 @@ def mariProjectCreate():
 	if os.path.exists(obj_name):
 		#What default layers are created
 		mari.projects.create("projectName", obj_name,
-			[mari.ChannelInfo('DIFF', 2048, 2048, 16, False, mari.Color(0, 0, 0), mari.setFileTemplate($ENTITY_$CHANNEL_$UDIM.png),mari.setPath(InsertPathHere),),
+			[mari.ChannelInfo('DIFF', 2048, 2048, 16, False, mari.Color(0, 0, 0), mari.setFileTemplate($ENTITY_$CHANNEL_$UDIM.png)),
 			mari.ChannelInfo('SPEC', 2048, 2048, 16, False, mari.Color(0.5, 0.5, 0.5), mari.setFileTemplate($ENTITY_$CHANNEL_$UDIM.png)),
 			mari.ChannelInfo('DSP', 2048, 2048, 16, True, mari.Color(0.5, 0.5, 0.5), mari.setFileTemplate($ENTITY_$CHANNEL_$UDIM.png))])
 
 # ------------------------------------------------------------------------------
-mariProjectCreate()
+#mariProjectCreate()
 
 
 
-mari.projects.showCreateDialog()
+#mari.projects.showCreateDialog()

@@ -5,10 +5,8 @@ import os
 import random
 
 # ------------------------------------------------------------------------------
-#GLOBALS & ENVIROMENT VARIABLES
-#JOB = "home\username\groups\owned\PRODUCTION\assets\"
-JOB = "/groups/owned/PRODUCTION/assets/"
-#MARI_SCRIPT_PATH = whereEverBrianSays
+#JOB = "/groups/owned/PRODUCTION/assets/"
+
 
 #projectName = userSelection
 projectName = "MariPipeTest"
@@ -30,4 +28,4 @@ def projectCreate():
 			os.makedirs(subDIRpath)
 
 # ------------------------------------------------------------------------------
-projectCreate()
+#projectCreate()
