@@ -7,16 +7,85 @@ import sip
 import os, glob
 import utilities as amu
 
-CHECKOUT_WINDOW_WIDTH = 330
-CHECKOUT_WINDOW_HEIGHT = 620
+CHECKOUT_WINDOW_WIDTH = 340
+CHECKOUT_WINDOW_HEIGHT = 575
 
 def maya_main_window():
 	ptr = omu.MQtUtil.mainWindow()
-	return sip.wrapinstance(long(ptr), QObject)		
+	return sip.wrapinstance(long(ptr), QObject)
+
+class CheckoutContext:
+	def __init__(self, parent, name, folder, asset_folder, can_create):
+		# name of this checkout context (i.e. Model, Rig, Animation)
+		self.name = name
+		# pathname to folder location (same as os.environ variable)
+		self.folder = folder
+		# folder location for the actual scene file to checkout
+		self.asset_folder = asset_folder;
+		# enable a New/Create button for this context
+		self.can_create = can_create
+		# intialize self.tree (the widget)
+		self.get_items(parent)
+		# no filtering, to start out with
+		self.cur_filter = ''
+
+	def get_items(self, parent):
+		# creates a QTreeWidget with the items to checkout
+		self.tree = QListWidget()
+		#self.tree.setColumnCount(1)
+		self.tree.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+		folders = glob.glob(os.path.join(self.folder, '*'))
+		for f in folders:
+			bname = os.path.basename(f)
+			item = QListWidgetItem(bname)
+			item.setText(bname)
+			self.tree.addItem(item)
+		self.tree.sortItems(0)
+		self.tree.setSortingEnabled(True)
+		# bind selection handler
+		self.tree.currentItemChanged.connect(parent.set_current_item)
+
+	def add_item(self, name):
+		# adds an item to the tree, with the given folder basename
+		item = QListWidgetItem(name)
+		item.setText(name)
+		self.tree.addItem(item)
+
+	def search(self, key):
+		# cache the old search key, so we don't perform unnecessary re-filtering
+		if self.cur_filter != key:
+			self.cur_filter = key
+			# search the list, show only the ones that match
+			# returns the index of the first valid result; -1 if no matches
+			first_result = key == ''
+			count = self.tree.count()
+			idx = 0
+			while idx < count:
+				item = self.tree.item(idx)
+				show = key == '' or key in item.text()
+				# auto-select the first search result
+				if show and not first_result:
+					first_result = True
+					self.tree.setCurrentItem(item)
+				self.tree.setRowHidden(idx, not show)
+				idx += 1
+			# no results, hide selection
+			if not first_result:
+				self.tree.setCurrentItem(None)
+		
+
 
 class CheckoutDialog(QDialog):
 	def __init__(self, parent=maya_main_window()):
-	#def setup(self, parent):
+		#Setup the different checkout contexts
+		self.contexts = [
+			CheckoutContext(self, 'Model', os.environ['ASSETS_DIR'], 'model', False),
+			CheckoutContext(self, 'Rig', os.environ['ASSETS_DIR'], 'rig', False),
+			CheckoutContext(self, 'Animation', os.environ['SHOTS_DIR'], 'animation', True),
+			CheckoutContext(self, 'Previs', os.environ['PREVIS_DIR'], 'animation', True)
+		]
+
+		#Initialize the GUI
 		QDialog.__init__(self, parent)
 		self.setWindowTitle('Checkout')
 		self.setFixedSize(CHECKOUT_WINDOW_WIDTH, CHECKOUT_WINDOW_HEIGHT)
@@ -25,103 +94,84 @@ class CheckoutDialog(QDialog):
 		self.refresh()
 	
 	def create_layout(self):
-		#Create the selected item list
-		self.selection_list = QListWidget()
-		self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)	
+		#Create tabbed view
+		self.context_tabs = QTabWidget()
+		for context in self.contexts:
+			self.context_tabs.addTab(context.tree, context.name)
 
-		#Create Models, Rig, Animation, Previs
-		radio_button_group = QHBoxLayout()
-		self.model_radio = QRadioButton('Model')
-		self.rig_radio = QRadioButton('Rig')
-		self.animation_radio = QRadioButton('Animation')
-		self.previs_radio = QRadioButton('Previs')
-		self.model_radio.setChecked(True)
-		radio_button_group.setSpacing(2)
-		radio_button_group.addWidget(self.model_radio)
-		radio_button_group.addWidget(self.rig_radio)
-		radio_button_group.addWidget(self.animation_radio)
-		radio_button_group.addWidget(self.previs_radio)
+		#Search input box
+		self.search_bar = QLineEdit()
+		search_layout = QHBoxLayout()
+		search_layout.addWidget(QLabel("Filter: "))
+		search_layout.addWidget(self.search_bar)
 
 		#Create Label to hold asset info
-		self.asset_info_label = QLabel("test")
+		self.asset_info_label = QLabel()
 		self.asset_info_label.setWordWrap(True)
 
-		#Create New Shot button; used by Animation & Previs modes
-		self.new_shot_button = QPushButton('New Shot')
-		
-		#Create Unlock button
+		#Create action buttons
+		self.new_button = QPushButton('New')
 		self.unlock_button = QPushButton('Unlock')
-
-		#Create Select and Cancel buttons
-		self.select_button = QPushButton('Select')
+		self.checkout_button = QPushButton('Checkout')
 		self.cancel_button = QPushButton('Cancel')
 		
 		#Create button layout
 		button_layout = QHBoxLayout()
 		button_layout.setSpacing(2)
-		button_layout.addStretch()
-	
-		button_layout.addWidget(self.select_button)
+
+		button_layout.addWidget(self.new_button)
 		button_layout.addWidget(self.unlock_button)
+		button_layout.addStretch()
+		button_layout.addWidget(self.checkout_button)
 		button_layout.addWidget(self.cancel_button)
 		
 		#Create main layout
 		main_layout = QVBoxLayout()
-		main_layout.setSpacing(2)
-		main_layout.setMargin(2)
-		main_layout.addWidget(self.selection_list)
-		#add text box to main layout to display info when asset is selected
-		main_layout.addWidget(self.asset_info_label)		
-		main_layout.addLayout(radio_button_group)
-		main_layout.addWidget(self.new_shot_button)
+		main_layout.setSpacing(5)
+		main_layout.setMargin(6)
+		main_layout.addLayout(search_layout)
+		main_layout.addWidget(self.context_tabs)
+		main_layout.addWidget(self.asset_info_label)
 		main_layout.addLayout(button_layout)
 		
 		self.setLayout(main_layout)
-	
+
 	def create_connections(self):
-		#Connect the selected item list widget
-		self.connect(self.selection_list,
-					SIGNAL('currentItemChanged(QListWidgetItem*, QListWidgetItem*)'),
-					self.set_current_item)
-			
+		#Change checkout context
+		self.context_tabs.currentChanged.connect(self.refresh)
+
+		#Search bar
+		self.search_bar.textChanged.connect(self.search)
+
 		#Connect the buttons
-		self.connect(self.model_radio, SIGNAL('clicked()'), self.refresh)
-		self.connect(self.rig_radio, SIGNAL('clicked()'), self.refresh)
-		self.connect(self.animation_radio, SIGNAL('clicked()'), self.refresh)
-		self.connect(self.previs_radio, SIGNAL('clicked()'), self.refresh)
-		self.connect(self.new_shot_button, SIGNAL('clicked()'), self.new_animation)
-		self.connect(self.unlock_button, SIGNAL('clicked()'), self.unlock)
-		self.connect(self.select_button, SIGNAL('clicked()'), self.checkout)
-		self.connect(self.cancel_button, SIGNAL('clicked()'), self.close_dialog)
+		self.new_button.clicked.connect(self.new_animation)
+		self.unlock_button.clicked.connect(self.unlock)
+		self.checkout_button.clicked.connect(self.checkout)
+		self.cancel_button.clicked.connect(self.close_dialog)
 	
-	def update_selection(self, selection):
-		#Remove all items from the list before repopulating
-		self.selection_list.clear()
-		#Clear info displayed about asset
-		self.asset_info_label.clear()
-		
-		#Add the list to select from
-		for s in selection:
-			item = QListWidgetItem(os.path.basename(s)) 
-			item.setText(os.path.basename(s))
-			self.selection_list.addItem(item)
-		self.selection_list.sortItems(0)
-	
+	def search(self, key):
+		self.context.search(key)
+
 	def refresh(self):
-		# updates selection list and toggles the "New Shot" button
-		self.new_shot_button.setEnabled(self.animation_radio.isChecked() or self.previs_radio.isChecked())
-		selections = glob.glob(os.path.join(self.get_checkout_location(), '*'))
-		self.update_selection(selections)
-	
+		# set the new context
+		self.context = self.contexts[self.context_tabs.currentIndex()]
+		# apply search filtering
+		self.search(self.search_bar.text())
+		# toggles the "New" button
+		self.new_button.setEnabled(self.context.can_create)
+		# refresh selection
+		self.set_current_item(self.context.tree.currentItem())
+
 	def new_animation(self):
 		text, ok = QInputDialog.getText(self, 'New Shot', 'Enter seq_shot (ie: a01)')
 		if ok:
 			text = str(text)
-			if self.previs_radio.isChecked():
-				amu.createNewPrevisFolders(os.environ['PREVIS_DIR'], text)
-			elif self.animation_radio.isChecked():
-				amu.createNewShotFolders(os.environ['SHOTS_DIR'], text)
-		self.refresh()
+			if self.context.name == 'Previs':
+				amu.createNewPrevisFolders(self.context.folder, text)
+			else:
+				amu.createNewShotFolders(self.context.folder, text)
+			self.context.add_item(text)
+			self.refresh()
 		return
 	
 	def get_filename(self, parentdir):
@@ -130,25 +180,7 @@ class CheckoutDialog(QDialog):
 	def get_asset_path(self):
 		# returns the path for a single asset
 		asset_name = str(self.current_item.text())
-		if self.model_radio.isChecked():
-			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-		elif self.rig_radio.isChecked():
-			filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-		elif self.animation_radio.isChecked():
-			filePath = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
-		elif self.previs_radio.isChecked():
-			filePath = os.path.join(os.environ['PREVIS_DIR'], asset_name, 'animation')
-		return filePath
-
-	def get_checkout_location(self):
-		# returns the environment path for this checkout mode
-		if self.model_radio.isChecked() or self.rig_radio.isChecked():
-			return os.environ['ASSETS_DIR']
-		if self.animation_radio.isChecked():
-			return os.environ['SHOTS_DIR']
-		if self.previs_radio.isChecked():
-			return os.environ['PREVIS_DIR']
-		raise Exception("Unimplemented checkout mode...");
+		return os.path.join(self.context.folder, asset_name, self.context.asset_folder)
 
 	def showIsLockedDialog(self):
 		return cmd.confirmDialog(title = 'Already Unlocked'
@@ -178,17 +210,17 @@ class CheckoutDialog(QDialog):
 	def unlock(self):
 		toUnlock = self.get_asset_path()		
 		if amu.isLocked(toUnlock):
-
 			if self.showConfirmUnlockDialog() == 'No':
 				return
 			
 			cmd.file(save=True, force=True)
 			cmd.file(force=True, new=True) #open new file
 			amu.unlock(toUnlock)
-			self.showUnlockedDialog()
-				
+			self.showUnlockedDialog()	
 		else:
 			self.showIsLockedDialog()
+		#Update node info
+		self.show_node_info()
 
 	
 	########################################################################
@@ -233,20 +265,24 @@ class CheckoutDialog(QDialog):
 	
 	def set_current_item(self, item):
 		self.current_item = item
-		self.show_node_info()
+		self.checkout_button.setEnabled(not not item)
+		if not item:
+			self.asset_info_label.hide()
+			self.unlock_button.setEnabled(False)
+		else:
+			self.asset_info_label.show()
+			self.show_node_info()
 		
 	def show_node_info(self):
-		asset_name = str(self.current_item.text())
-		filePath = self.get_asset_path();
+		filePath = self.get_asset_path()
 		node_info = amu.getVersionedFolderInfo(filePath)
 		checkout_str = node_info[0]
-		if(checkout_str ==''):
-			checkout_str = 'Not checked out. '
+		self.unlock_button.setEnabled(checkout_str != '')
+		if (checkout_str == ''):
+			checkout_str = '<font color="#6EFF81">Not checked out.</font>'
 		else:
-			checkout_str = 'Checked out by '+node_info[0]+'. '
-		checkin_str = 'Last checked in by '+node_info[1]+' on '+node_info[2]
-		
-		print 'should clear label'
+			checkout_str = '<font color="#FF6E6E">Checked out by '+node_info[0]+'.</font>'
+		checkin_str = '<br/>Last checked in by '+node_info[1]+' on '+node_info[2]
 		self.asset_info_label.setText(checkout_str+checkin_str)
 		
 def go():
