@@ -282,7 +282,8 @@ class CheckoutDialog(QDialog):
 			checkout_str = '<font color="#6EFF81">Not checked out.</font>'
 		else:
 			checkout_str = '<font color="#FF6E6E">Checked out by '+node_info[0]+'.</font>'
-		checkin_str = '<br/>Last checked in by '+node_info[1]+' on '+node_info[2]
+		#checkin_str = '<br/>Last checked in by '+node_info[1]+' on '+node_info[2]
+		checkin_str = '<br/>Last checkin: ' + node_info[3]
 		self.asset_info_label.setText(checkout_str+checkin_str)
 		
 def go():

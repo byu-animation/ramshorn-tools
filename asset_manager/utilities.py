@@ -60,6 +60,7 @@ def createNodeInfoFile(dirPath, toKeep):
 	nodeInfo.set('Versioning', 'LastCheckinTime', timestamp)
 	nodeInfo.set('Versioning', 'LastCheckinUser', username)
 	nodeInfo.add_section('Comments')
+	nodeInfo.set('Comments', 'v000', 'New')
 
 	_writeConfigFile(os.path.join(dirPath, ".nodeInfo"), nodeInfo)
 	
@@ -209,6 +210,9 @@ def getVersionedFolderInfo(dirPath):
 		nodeInfo.append("")
 	nodeInfo.append(cp.get("Versioning", "lastcheckinuser"))
 	nodeInfo.append(cp.get("Versioning", "lastcheckintime"))
+	versionNum = int(cp.get("Versioning", "latestversion"))
+	latestVersion = "v"+("%03d" % versionNum) 
+	nodeInfo.append(cp.get("Comments", latestVersion))
 	if isInstalled(dirPath):
 		nodeInfo.append("Yes")
 		nodeInfo.append(glob.glob(os.path.join(dirPath, 'stable', '*stable*'))[0])
@@ -216,6 +220,15 @@ def getVersionedFolderInfo(dirPath):
 		nodeInfo.append("No")
 		nodeInfo.append("")
 	return nodeInfo
+
+def getVersionComment(dirPath, version):
+	if not isVersionedFolder(dirPath):
+		raise Exception("Not a versioned folder")
+	
+	nodeInfo = []
+	cp = ConfigParser()
+	cp.read(os.path.join(dirPath, ".nodeInfo")) 
+	return cp.get("Comments",version)
 
 def tempSetVersion(chkInDest, version):
     """
