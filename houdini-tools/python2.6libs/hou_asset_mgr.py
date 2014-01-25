@@ -282,8 +282,13 @@ def checkinLightingFile():
     if os.path.isdir(backups):
         os.system('rm -rf '+backups)
     if amu.canCheckin(toCheckin):
+        response = hou.ui.readInput("What did you change?", buttons=('OK', 'Cancel',), title='Comment')
+        if(response[0] != 0):
+            return
+        comment = response[1]
         hou.hipFile.save()
         hou.hipFile.clear()
+        amu.setComment(toCheckin, comment)
         dest = amu.checkin(toCheckin, False)
         srcFile = amu.getAvailableInstallFiles(dest)[0]
         amu.install(dest, srcFile)
@@ -432,10 +437,15 @@ def checkin(node = None):
         toCheckin = os.path.dirname(libraryPath)
 
         if os.path.exists(os.path.join(toCheckin, ".checkoutInfo")) and amu.canCheckin(toCheckin):
+            response = hou.ui.readInput("What did you change?", buttons=('OK', 'Cancel',), title='Comment')
+            if(response[0] != 0):
+                return
+            comment = response[1]
             lockAsset(node, False)
             saveOTL(node)
             node.type().definition().save(libraryPath)
             hou.hda.uninstallFile(libraryPath, change_oplibraries_file=False)
+            amu.setComment(toCheckin, comment)
             assetdir = amu.checkin(toCheckin, False)
             assetpath = amu.getAvailableInstallFiles(assetdir)[0]
             amu.install(assetdir, assetpath)
