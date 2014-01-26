@@ -198,6 +198,15 @@ def isInstalled(dirPath):
 	return bool(glob.glob(os.path.join(dirPath, 'stable', '*stable*')))
 
 def getVersionedFolderInfo(dirPath):
+	"""
+	returns a list containing the following information about the asset in dirPath:
+	[0] last person to check it out, if locked
+	[1] last person to check it in
+	[2] time it was last checked in
+	[3] latest comment on checkin
+	[4] if it is isInstalled
+	[5] filepath to install directory
+	"""
 	if not isVersionedFolder(dirPath):
 		raise Exception("Not a versioned folder")
 	
@@ -485,6 +494,7 @@ def discard(toDiscard):
 	"""
 	Discards a local checked out folder without creating a new version.
 	"""
+	print toDiscard
 	chkoutInfo = ConfigParser()
 	chkoutInfo.read(os.path.join(toDiscard, ".checkoutInfo"))
 	chkInDest = chkoutInfo.get("Checkout", "checkedoutfrom")
@@ -496,18 +506,21 @@ def discard(toDiscard):
 	_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
 
 	shutil.rmtree(toDiscard)
+	if(os.path.exists(toDiscard)):
+		os.rmdir(toDiscard)
 
 def getCheckinDest(toCheckin):
 	chkoutInfo = ConfigParser()
 	chkoutInfo.read(os.path.join(toCheckin, ".checkoutInfo"))
 	return chkoutInfo.get("Checkout", "checkedoutfrom")
 
-def checkin(toCheckin, isAnim):
+def checkin(toCheckin):
 	"""
 	Checks a folder back in as the newest version
 	@precondition: toCheckin is a valid path
 	@precondition: canCheckin() == True OR all conflicts have been resolved
 	"""
+	print toCheckin
 	chkoutInfo = ConfigParser()
 	chkoutInfo.read(os.path.join(toCheckin, ".checkoutInfo"))
 	chkInDest = chkoutInfo.get("Checkout", "checkedoutfrom")

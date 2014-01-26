@@ -289,7 +289,7 @@ def checkinLightingFile():
         hou.hipFile.save()
         hou.hipFile.clear()
         amu.setComment(toCheckin, comment)
-        dest = amu.checkin(toCheckin, False)
+        dest = amu.checkin(toCheckin)
         srcFile = amu.getAvailableInstallFiles(dest)[0]
         amu.install(dest, srcFile)
     else:
@@ -446,7 +446,7 @@ def checkin(node = None):
             node.type().definition().save(libraryPath)
             hou.hda.uninstallFile(libraryPath, change_oplibraries_file=False)
             amu.setComment(toCheckin, comment)
-            assetdir = amu.checkin(toCheckin, False)
+            assetdir = amu.checkin(toCheckin)
             assetpath = amu.getAvailableInstallFiles(assetdir)[0]
             amu.install(assetdir, assetpath)
             hou.hda.installFile(os.path.join(OTLDIR, filename), change_oplibraries_file=True)
@@ -862,16 +862,18 @@ def getInfo(node):
         pass
     elif isDigitalAsset(node):
         # code for getting info selected node
-        updateDB()
         libraryPath = node.type().definition().libraryFilePath()
         filename = os.path.basename(libraryPath)
-        nodeInfo = getFileInfo(filename)
+        assetname, ext = os.path.splitext(filename)
+        nodeDir = os.path.join(os.environ['ASSETS_DIR'], assetname, 'otl')
+        nodeInfo = amu.getVersionedFolderInfo(nodeDir)
         message = ''
-        if nodeInfo[2]:
-            logname, realname = amu.lockedBy(nodeInfo[3].encode('utf-8'))
-            message = 'Checked out by '+realname+' ('+logname+')'
+        if nodeInfo[0]:
+            logname, realname = amu.lockedBy(nodeInfo[0].encode('utf-8'))
+            message = 'Checked out by '+realname+' ('+logname+').\n'
         else:
-            message = 'Not checked out.'
+            message = 'Not Checked out.\n'
+        message = message+'Last checked in by '+nodeInfo[3]
         hou.ui.displayMessage(message, title='Node Info')
 
 # make getNodeInfo an alias of getInfo
