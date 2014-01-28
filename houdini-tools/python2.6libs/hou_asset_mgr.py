@@ -130,7 +130,7 @@ def unlockOTLbyNode(node = None):
         if not isDigitalAsset(node):
             hou.ui.displayMessage("Not a Digital Asset.")
         else:
-            warningMsg = 'WARNING! You are unlocking the Database! \n If you didn\'t mean to do this, please click \n CANCEL!'
+            warningMsg = 'WARNING! You are unlocking this node! \n If you didn\'t mean to do this, please click \n CANCEL!'
             reply = hou.ui.displayMessage(warningMsg, title='Warning!', buttons=('Ok', 'Cancel'), default_choice=1)
             if reply == 0:
                 libraryPath = node.type().definition().libraryFilePath()
@@ -141,13 +141,18 @@ def unlockOTLbyNode(node = None):
                 hou.ui.displayMessage('Thank you for being safe. \n If you have a question please talk to someone in charge.')                
 
 def unlockOTL(filename):
-    """Updates the database entry specified by filename to locked=0 and lockedby=''"""
-    con = lite.connect(database)
-    with con:
-        cur = con.cursor()
-        cur.execute("UPDATE otl_table SET locked=0, lockedby='' WHERE filename='"+filename+"'")
-        con.commit()
-    con.close()	
+	asset_name, ext = os.path.splitext(filename)
+	toUnlock = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'otl')
+	print toUnlock
+	if amu.isLocked(toUnlock):
+		reply = hou.ui.displayMessage('Are you REALLY sure you want to unlock this node?', buttons=('Ok', 'Cancel'))
+		if reply == 0:	
+			amu.unlock(toUnlock)
+			hou.ui.displayMessage('Node unlocked')
+	else:
+		hou.ui.displayMessage('Node already unlocked')
+		return
+	
 
 def addOTL(filename):
     """Updates the database with a new table entry for filename"""
