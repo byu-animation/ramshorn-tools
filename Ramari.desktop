@@ -1,0 +1,13 @@
+#!/usr/bin/env xdg-open
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Icon[en_US]=/usr/local/Mari2.5v2/Media/Icons/Mari.128x128.png
+Name[en_US]=Ramari
+Exec=/groups/ramshorn/ramshorn-tools/project_mari.sh
+Comment[en_US]=Ram's Horn Mari
+Name=Ramari
+Comment=Ram's Horn Mari
+Icon=/usr/local/Mari2.5v2/Media/Icons/Mari.128x128.png
