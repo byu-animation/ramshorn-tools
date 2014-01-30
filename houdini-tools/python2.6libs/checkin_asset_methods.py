@@ -6,6 +6,48 @@ import hou_asset_mgr
 
 import utilities as amu #asset manager utilites
 
+OTLDIR=os.environ['OTLS_DIR']
+
+def checkin(node = None):
+    """Checks in the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
+        The node must already exist in the database, and USERNAME must have the lock."""
+    if not hou_asset_mgr.isDigitalAsset(node):
+        hou.ui.displayMessage("Not a Digital Asset.")
+    else:
+        libraryPath = node.type().definition().libraryFilePath() #user checkout folder
+        filename = os.path.basename(libraryPath) # otl filename
+        toCheckin = os.path.dirname(libraryPath)
+
+        if os.path.exists(os.path.join(toCheckin, ".checkoutInfo")) and amu.canCheckin(toCheckin):
+            response = hou.ui.readInput("What did you change?", buttons=('OK', 'Cancel',), title='Comment')
+            if(response[0] != 0):
+                return
+            comment = response[1]
+            hou_asset_mgr.lockAsset(node, False)
+            hou_asset_mgr.saveOTL(node)
+            node.type().definition().save(libraryPath)
+            hou.hda.uninstallFile(libraryPath, change_oplibraries_file=False)
+            amu.setComment(toCheckin, comment)
+            assetdir = amu.checkin(toCheckin)
+            assetpath = amu.getAvailableInstallFiles(assetdir)[0]
+            amu.install(assetdir, assetpath)
+            hou.hda.installFile(os.path.join(OTLDIR, filename), change_oplibraries_file=True)
+            hou.hda.uninstallFile("Embedded")
+            if isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
+                                                        , buttons=('Yes','No',)
+                                                        , default_choice=0
+                                                        , title='Export Alembic') == 0:
+                writeCamerasToAlembic(node)
+            if isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
+                                                        , buttons=('Yes','No',)
+                                                        , default_choice=0
+                                                        , title='Export Alembic') == 0:
+                writeSetToAlembic(node)
+            hou.ui.displayMessage("Checkin Successful!")
+
+        else:
+            hou.ui.displayMessage('Can Not Checkin.')
+
 def getAssetName(node):
     if hou_asset_mgr.isDigitalAsset(node):
         lpath = node.type().definition().libraryFilePath()

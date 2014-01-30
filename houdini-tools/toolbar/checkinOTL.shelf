@@ -17,11 +17,12 @@ NOTE:
 # Checkin a Digital Asset and releas it for others use
 
 import hou_asset_mgr as mgr
+import checkin_asset_methods as checkinMethods
 import lighting_asset_methods as lighting
 
 node = mgr.getSelectedNode()
 if node != None:
-    mgr.checkin(node)
+    checkinMethods.checkin(node)
 else:
     lighting.checkinLightingFile()]]></script>
   </tool>

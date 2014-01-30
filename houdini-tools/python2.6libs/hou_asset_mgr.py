@@ -265,47 +265,7 @@ def checkout(node):
         node.allowEditingOfContents()
         hou.ui.displayMessage("Checkout Successful!", title='Success!')
 
-# isCameraAsset(node), isSetAsset(node), writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', startFrame=1, endFrame=240, stepSize=1), writeCamerasToAlembic(node), and writeSetToAlembic(node) moved to checkin_asset_methods.py
-
-def checkin(node = None):
-    """Checks in the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
-        The node must already exist in the database, and USERNAME must have the lock."""
-    if not isDigitalAsset(node):
-        hou.ui.displayMessage("Not a Digital Asset.")
-    else:
-        libraryPath = node.type().definition().libraryFilePath() #user checkout folder
-        filename = os.path.basename(libraryPath) # otl filename
-        toCheckin = os.path.dirname(libraryPath)
-
-        if os.path.exists(os.path.join(toCheckin, ".checkoutInfo")) and amu.canCheckin(toCheckin):
-            response = hou.ui.readInput("What did you change?", buttons=('OK', 'Cancel',), title='Comment')
-            if(response[0] != 0):
-                return
-            comment = response[1]
-            lockAsset(node, False)
-            saveOTL(node)
-            node.type().definition().save(libraryPath)
-            hou.hda.uninstallFile(libraryPath, change_oplibraries_file=False)
-            amu.setComment(toCheckin, comment)
-            assetdir = amu.checkin(toCheckin)
-            assetpath = amu.getAvailableInstallFiles(assetdir)[0]
-            amu.install(assetdir, assetpath)
-            hou.hda.installFile(os.path.join(OTLDIR, filename), change_oplibraries_file=True)
-            hou.hda.uninstallFile("Embedded")
-            if checkin_asset_methods.isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
-                                                        , buttons=('Yes','No',)
-                                                        , default_choice=0
-                                                        , title='Export Alembic') == 0:
-                checkin_asset_methods.writeCamerasToAlembic(node)
-            if checkin_asset_methods.isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
-                                                        , buttons=('Yes','No',)
-                                                        , default_choice=0
-                                                        , title='Export Alembic') == 0:
-                checkin_asset_methods.writeSetToAlembic(node)
-            hou.ui.displayMessage("Checkin Successful!")
-
-        else:
-            hou.ui.displayMessage('Can Not Checkin.')
+# checkin(node = None), isCameraAsset(node), isSetAsset(node), writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', startFrame=1, endFrame=240, stepSize=1), writeCamerasToAlembic(node), and writeSetToAlembic(node) moved to checkin_asset_methods.py
 
 def discard(node = None):
     if not isDigitalAsset(node):
@@ -452,17 +412,7 @@ def deleteAsset(node = None):
         hou.ui.displayMessage("Select EXACTLY one node.")
         return
 
-# newGeo(hpath) and determineHPATH() moved to new_asset_methods.py
-
-def new():
-    otb = ('Container', 'Geometry', 'Cancel')
-    # optype = ui.infoWindow("Choose operator type.", wbuttons=otb, wtitle='Asset Type')
-    optype = hou.ui.displayMessage("Choose operator type.", buttons=otb, title='Asset Type')
-    hpath = new_asset_methods.determineHPATH()
-    if optype == 0:
-        new_asset_methods.newContainer(hpath)
-    elif optype == 1:
-        new_asset_methods.newGeo(hpath)
+# new(), newGeo(hpath) and determineHPATH() moved to new_asset_methods.py
 
 # getAssetName(node) moved to checkin_asset_methods.py
 

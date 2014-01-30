@@ -10,6 +10,16 @@ import utilities as amu #asset manager utilites
 OTLDIR=os.environ['OTLS_DIR']
 ASSETSDIR=os.environ['ASSETS_DIR']
 
+def new():
+    otb = ('Container', 'Geometry', 'Cancel')
+    # optype = ui.infoWindow("Choose operator type.", wbuttons=otb, wtitle='Asset Type')
+    optype = hou.ui.displayMessage("Choose operator type.", buttons=otb, title='Asset Type')
+    hpath = determineHPATH()
+    if optype == 0:
+        newContainer(hpath)
+    elif optype == 1:
+        newGeo(hpath)
+
 def listContainers():
     dirlist = list()
     for root,dirs,files in os.walk(ASSETSDIR):
