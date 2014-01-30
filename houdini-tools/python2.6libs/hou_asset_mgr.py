@@ -8,6 +8,8 @@ import hou
 import subprocess
 from ui_tools import ui, messageSeverity, fileMode
 from miscutil import fileutil
+import new_asset_methods
+import checkin_asset_methods
 
 import utilities as amu #asset manager utilites
 
@@ -221,99 +223,7 @@ lockAsset = _lockAssetNew
 def get_filename(parentdir):
     return os.path.basename(os.path.dirname(parentdir))+'_'+os.path.basename(parentdir)
 
-def checkoutLightingFile():
-    print("checkoutLightingFile")
-    shotPaths = glob.glob(os.path.join(os.environ['SHOTS_DIR'], '*'))
-    selections = []
-    for sp in shotPaths:
-        selections.append(os.path.basename(sp))
-    selections.sort()
-    answer = hou.ui.selectFromList(selections, message='Select shot file to checkout:', exclusive=True)
-    if answer:
-        answer = answer[0]
-        toCheckout = os.path.join(os.environ['SHOTS_DIR'], selections[answer], 'lighting')
-
-        try:
-            destpath = amu.checkout(toCheckout, True)
-        except Exception as e:
-            if not amu.checkedOutByMe(toCheckout):
-                hou.ui.displayMessage('Can Not Checkout: '+str(e))
-                return
-            else:
-                destpath = amu.getCheckoutDest(toCheckout)
-
-        toOpen = os.path.join(destpath, get_filename(toCheckout)+'.hipnc')
-
-        if os.path.exists(toOpen):
-            hou.hipFile.load(toOpen)
-        else:
-            hou.hipFile.clear()
-            hou.hipFile.save(toOpen) 
-
-def unlockLightingFile():
-    print("unlockLightingFile")
-    shotPaths = glob.glob(os.path.join(os.environ['SHOTS_DIR'], '*'))
-    selections = []
-    for sp in shotPaths:
-        selections.append(os.path.basename(sp))
-    selections.sort()
-    answer = hou.ui.selectFromList(selections, message='Select shot file to unlock:', exclusive=True)
-    if answer:
-        answer = answer[0]
-        toUnlock = os.path.join(os.environ['SHOTS_DIR'], selections[answer], 'lighting')
-    if amu.isLocked(toUnlock):
-        reply = hou.ui.displayMessage('Are you sure you want to unlock this file?', buttons=('Ok', 'Cancel'))
-        if reply == 0:
-            hou.hipFile.save()
-            hou.hipFile.clear()		
-            amu.unlock(toUnlock)
-            hou.ui.displayMessage('Lighting file unlocked')
-
-    else:
-        hou.ui.displayMessage('Lighting file already unlocked')
-        return
-
-def checkinLightingFile():
-    print('checkin lighting file')
-    filepath = hou.hipFile.path()
-    toCheckin = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(filepath)))
-    backups = os.path.join(toCheckin, 'backup')
-    print 'backup = ' + backups
-    if os.path.isdir(backups):
-        os.system('rm -rf '+backups)
-    if amu.canCheckin(toCheckin):
-        response = hou.ui.readInput("What did you change?", buttons=('OK', 'Cancel',), title='Comment')
-        if(response[0] != 0):
-            return
-        comment = response[1]
-        hou.hipFile.save()
-        hou.hipFile.clear()
-        amu.setComment(toCheckin, comment)
-        dest = amu.checkin(toCheckin)
-        srcFile = amu.getAvailableInstallFiles(dest)[0]
-        amu.install(dest, srcFile)
-    else:
-        hou.ui.displayMessage('Checkin Failed')
-
-def discardLightingFile():
-    filepath = hou.hipFile.path()
-    #TODO
-    print(filepath)
-    if hou.ui.displayMessage('YOU ARE ABOUT TO IRREVOKABLY DISCARD ALL CHANGES YOU HAVE MADE. '
-                        'Please think this through very carefully.\n '
-                        'Are you sure you want to discard '
-                        'your changes?'
-                        , buttons=('Yes','No',)
-                        , default_choice=1
-                        , title='Discard Confirmation') == 0:
-        toDiscard = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(filepath)))
-        if amu.isCheckedOutCopyFolder(toDiscard):
-            hou.hipFile.clear()
-            amu.discard(toDiscard)
-        else:
-            hou.ui.displayMessage('This is not a checked out file.  There is nothing to discard', title='Invalid Command')
-    else:
-        hou.ui.displayMessage('Thank you for being responsible.', title='Discard Cancelled')
+# checkoutLightingFile(), unlockLightingFile(), checkinLightingFile() and discardLightingFile() moved to the lighting_asset_methods.py
 
 def checkout(node):
     """Checks out the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
@@ -350,81 +260,7 @@ def checkout(node):
         node.allowEditingOfContents()
         hou.ui.displayMessage("Checkout Successful!", title='Success!')
 
-def isCameraAsset(node):
-    return 'cameras' in node.name()
-
-def isSetAsset(node):
-    sets = ('owned_abby_family_room', 'owned_jeffs_apartment')
-    return getAssetName(node) in sets
-
-def writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', startFrame=1, endFrame=240, stepSize=1):
-    if not os.path.exists(outDir):
-        os.makedirs(outDir)
-
-    abcFilePath = os.path.join(outDir, filename)
-
-    # Create alembic ROP
-    abcROP = hou.node('/out').createNode('alembic')
-
-    # Set parameters
-    parms = {}
-    parms['trange'] = trange
-    parms['f1'] = startFrame
-    parms['f2'] = endFrame
-    parms['f3'] = stepSize
-    parms['filename'] = abcFilePath
-    parms['root'] = rootObject.path()
-    parms['objects'] = objects
-    abcROP.setParms(parms)
-
-    # Render ROP
-    abcROP.render()
-    abcROP.destroy()
-
-    return abcFilePath
-    
-def writeCamerasToAlembic(node):
-    sequence = node.name().split('_')[2][0]
-    children = node.children()
-    for c in children:
-        name = c.name()
-        if 'shot' in name:
-            shot = name.split('_')[1]
-            camDir = os.path.join(os.environ['SHOTS_DIR'], sequence+shot, 'camera')
-            abcName = sequence+shot+'_camera'+'.abc'
-            sFrame, eFrame = hou.playbar.playbackRange()
-            sSize = hou.playbar.frameIncrement()
-            abcFilePath = writeToAlembic(camDir, abcName, node
-                                        , objects=os.path.join(c.path(), 'cam1')
-                                        , trange='normal'
-                                        # , startFrame=sFrame
-                                        # , endFrame=eFrame
-                                        , stepSize=sSize)
-            mayaFilePath = os.path.join(camDir, sequence+shot+'_camera'+'.mb')
-            if os.path.exists(mayaFilePath):
-                os.remove(mayaFilePath)
-            amu.mayaImportAlembicFile(mayaFilePath, abcFilePath)
-            print hou.node(os.path.join(c.path(),'cam1')).evalParm('focal')
-            amu.setFocalLengthMaya(mayaFilePath, hou.node(os.path.join(c.path(),'cam1')).evalParm('focal'))
-            
-
-def writeSetToAlembic(node):
-    exclude_objects = ('owned_jeff_couch', 'owned_jeffs_controller', 'owned_abby_controller', 'owned_cyclopes_toy')
-    assetName = getAssetName(node)
-    print(assetName)
-    abcName = assetName+'.abc'
-    setDir = os.path.join(os.environ['PRODUCTION_DIR'], 'set_cache', assetName)
-    include_objects = ''
-    for c in node.children():
-        name = getAssetName(c)
-        if name != None and name not in exclude_objects and 'wall' not in name and 'layout' not in name:
-            include_objects += ' '+c.path()
-    abcFilePath = writeToAlembic(setDir, abcName, node, objects=include_objects)
-    mayaFilePath = os.path.join(setDir, assetName+'.mb')
-    if os.path.exists(mayaFilePath):
-        os.remove(mayaFilePath)
-    amu.mayaImportAlembicFile(mayaFilePath, abcFilePath)
-
+# isCameraAsset(node), isSetAsset(node), writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', startFrame=1, endFrame=240, stepSize=1), writeCamerasToAlembic(node), and writeSetToAlembic(node) moved to checkin_asset_methods.py
 
 def checkin(node = None):
     """Checks in the selected node.  EXACTLY ONE node may be selected, and it MUST be a digital asset.
@@ -451,16 +287,16 @@ def checkin(node = None):
             amu.install(assetdir, assetpath)
             hou.hda.installFile(os.path.join(OTLDIR, filename), change_oplibraries_file=True)
             hou.hda.uninstallFile("Embedded")
-            if isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
+            if checkin_asset_methods.isCameraAsset(node) and hou.ui.displayMessage('Export Alembic?'
                                                         , buttons=('Yes','No',)
                                                         , default_choice=0
                                                         , title='Export Alembic') == 0:
-                writeCamerasToAlembic(node)
-            if isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
+                checkin_asset_methods.writeCamerasToAlembic(node)
+            if checkin_asset_methods.isSetAsset(node) and hou.ui.displayMessage('Export Alembic?'
                                                         , buttons=('Yes','No',)
                                                         , default_choice=0
                                                         , title='Export Alembic') == 0:
-                writeSetToAlembic(node)
+                checkin_asset_methods.writeSetToAlembic(node)
             hou.ui.displayMessage("Checkin Successful!")
 
         else:
@@ -479,6 +315,7 @@ def discard(node = None):
             amu.discard(toDiscard)
             hou.ui.displayMessage("Revert Successful!")
 
+# formatName(name) is also used in the new_asset_methods.py
 def formatName(name):
     name = name.strip()
     name = name.replace('_', ' ')
@@ -486,55 +323,7 @@ def formatName(name):
         name = str(os.environ['PROJECT_NAME']) + ' ' + name
     return name.lower()
 
-def listContainers():
-    dirlist = list()
-    for root,dirs,files in os.walk(ASSETSDIR):
-        if root != ASSETSDIR:
-            break
-        else:
-            for dir in dirs:
-                dirlist.append(str(dir))
-    dirlist.sort()
-    return dirlist
-
-def newContainer(hpath):
-    templateNode = hou.node(hpath).createNode("containerTemplate")
-    templateNode.hide(True)
-    # resp = ui.inputWindow("Enter the New Operator Label", wtitle="OTL Label")
-    response = hou.ui.readInput("Enter the New Operator Label", buttons=('Ok', 'Cancel'), title="OTL Label")
-    if response[0]==0:
-        name = response[1]
-    else:
-        name = None
-    if name != None and name.strip() != '':
-        name = formatName(name)
-        filename = name.replace(' ', '_')
-        newfilepath = os.path.join(OTLDIR, filename+'.otl')
-        
-        if not os.path.exists(newfilepath):
-            # create file heirarchy if container asset            
-            amu.createNewAssetFolders(ASSETSDIR, filename)
-
-            newversiondir = os.path.join(ASSETSDIR, filename+'/otl')
-            print "dir " + newversiondir
-            newversionpath = os.path.join(newversiondir, 'src/v000/'+filename+'.otl')
-            print "path " + newversionpath
-            templateNode.type().definition().copyToHDAFile(newversionpath, new_name=filename, new_menu_name=name)
-            stablepath = amu.install(newversiondir, newversionpath)
-            os.symlink(stablepath, newfilepath)
-            hou.hda.installFile(newfilepath, change_oplibraries_file=True)
-            fileutil.clobberPermissions(newfilepath)
-            newnode = hou.node(hpath).createNode(filename)
-            
-            # templateNode.type().definition().copyToHDAFile(newfilepath, new_name=filename, new_menu_name=name)
-            # hou.hda.installFile(newfilepath, change_oplibraries_file=True)
-            # fileutil.clobberPermissions(newfilepath)
-            # newnode = hou.node(hpath).createNode(filename)
-        else:
-            hou.ui.displayMessage("Asset by that name already exists. Cannot create asset.", title='Asset Name', severity=hou.severityType.Error)
-        
-    # clean up
-    templateNode.destroy()
+# listContainers() and newContainer(hpath) moved to new_asset_methods.py
 
 def printList(pList, ws=4):
     indent = ' '*ws
@@ -594,7 +383,7 @@ def rename(node = None):
                             else:
                                 node.type().definition().copyToHDAFile(newfilepath, new_name=newfilename, new_menu_name=name)
                                 hou.hda.installFile(newfilepath, change_oplibraries_file=True)
-                                newnode = hou.node(determineHPATH()).createNode(newfilename)
+                                newnode = hou.node(new_asset_methods.determineHPATH()).createNode(newfilename)
                                 node.destroy()
                                 hou.hda.uninstallFile(oldlibraryPath, change_oplibraries_file=False)
                                 subprocess.check_call( ['rm','-f',oldlibraryPath] )
@@ -658,57 +447,19 @@ def deleteAsset(node = None):
         hou.ui.displayMessage("Select EXACTLY one node.")
         return
 
-def newGeo(hpath):
-    templateNode = hou.node(hpath).createNode("geometryTemplate")
-    alist = listContainers()
-    response = hou.ui.readInput("Enter the New Operator Label", title="OTL Label", buttons=('OK', 'Cancel'))
-    filename = str()
-    if response[0]==0:
-        name = response[1]
-    else:
-        name = None
-    if name != None and name.strip() != '':
-        name = formatName(name)
-        filename = name.replace(' ', '_')
-        templateNode.setName(filename, unique_name=True)
-    answer = hou.ui.selectFromList(alist, message='Select Container Asset this belongs to:', exclusive=True)
-    if not answer:
-        hou.ui.displayMessage("Geometry must be associated with a container asset! Geometry asset not created.", severity=hou.severityType.Error)
-        templateNode.destroy()
-        return
-    answer = answer[0]
-    sdir = '$JOB/production/assets/'
-    gfile = hou.ui.selectFile(start_directory=os.path.join(sdir, alist[answer]+'/geo'), title='Choose Geometry', chooser_mode=hou.fileChooserMode.Read, pattern='*.bjson, *.obj')
-    if len(gfile) > 4 and gfile[:4] != '$JOB':
-        hou.ui.displayMessage("Path must start with '$JOB'. Default geometry used instead.", title='Path Name', severity=hou.severityType.Error)
-        templateNode.destroy()
-    elif gfile != '':
-        hou.parm(templateNode.path() + '/read_file/file').set(gfile)
-
-def determineHPATH():
-    hpane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
-    hpath = hpane.pwd().path()
-    if not isinstance(hpane.pwd(), hou.ObjNode):
-        hpath = "/obj"
-    return hpath
+# newGeo(hpath) and determineHPATH() moved to new_asset_methods.py
 
 def new():
     otb = ('Container', 'Geometry', 'Cancel')
     # optype = ui.infoWindow("Choose operator type.", wbuttons=otb, wtitle='Asset Type')
     optype = hou.ui.displayMessage("Choose operator type.", buttons=otb, title='Asset Type')
-    hpath = determineHPATH()
+    hpath = new_asset_methods.determineHPATH()
     if optype == 0:
-        newContainer(hpath)
+        new_asset_methods.newContainer(hpath)
     elif optype == 1:
-        newGeo(hpath)
+        new_asset_methods.newGeo(hpath)
 
-def getAssetName(node):
-    if isDigitalAsset(node):
-        lpath = node.type().definition().libraryFilePath()
-        filename = os.path.basename(lpath)
-        return str(filename.split('.')[0].replace("'", "_"))
-    else:
-        return None
+# getAssetName(node) moved to checkin_asset_methods.py
 
 def refresh(node = None):
     """Only updates transforms of internal nodes of "Editable Assets"
@@ -754,106 +505,7 @@ def add(node = None):
     else:
         hou.ui.displayMessage("Select EXACTLY one node.")
 
-
-def convert_texture(userTextureMap, assetImageDir, folder_name=''):
-    print userTextureMap
-
-    if os.path.isdir(userTextureMap):
-        return
-
-    extensions = ['.jpg','.jpeg','.tiff','.tif','.png','.exr']
-    userFileName, userExt = os.path.splitext(os.path.basename(userTextureMap))
-    if userExt not in extensions:
-        return
-
-    # Set Variables for texture paths
-    convertedTexture = os.path.join('/tmp','intermediate'+userFileName+'.exr')
-    print "convertedTexture:: "+convertedTexture
-    finalTexture = os.path.join('/tmp','finished'+userFileName+'.rat')
-    print "finalTexture:: "+finalTexture
-
-    # Gamma correct for linear workflow
-    if 'DIFF' in userTextureMap or 'diffuse' in userTextureMap:
-        args = ['icomposite',convertedTexture,'=','gamma',str(1/2.2),userTextureMap]
-        
-        try:
-            subprocess.check_call(args)
-        except subprocess.CalledProcessError as e:
-            hou.ui.displayMessage('Failed to convert texture. The following error occured:\n' + str(e))        
-            return
-        didgamma = '\nIt has been gamma corrected.'
-    else:
-        convertedTexture = userTextureMap
-        didgamma = ''
-    '''    
-    # Convert to .exr with optimized settings. Also, setting compatible with RenderMan (in case we need to render there)
-    args = ['txmake','-mode','periodic','-compression','zip']
-    args += ['-format','openexr','-half',convertedTexture,finalTexture]
-    '''
-    # Uncomment the following and comment out the previous call if PRMan is not present
-
-    args = ['iconvert', convertedTexture, finalTexture] 
-    
-    #subprocess.check_call( args.split() )
-
-
-    try:
-        subprocess.check_call(args)
-    except subprocess.CalledProcessError as e:
-        hou.ui.displayMessage('Failed to convert texture. The following error occured:\n' + str(e))
-    else:
-        # Rename texture and move into production pipeline 
-        newTextureName = userFileName + '.rat'
-
-        newfilepath = os.path.join(assetImageDir, folder_name, newTextureName)
-        print "new file path:: "+newfilepath
-
-        try:
-            shutil.move(finalTexture, newfilepath)  
-        except Exception as e:
-            os.remove(finalTexture)
-            hou.ui.displayMessage('Failed to move texture. The following error occured:\n' + str(e), severity=hou.severityType.Error)
-        finally:
-            if convertedTexture != userTextureMap:
-                os.remove(convertedTexture)
-
-def newTexture():
-    # Get a list of assets 
-    assetList = glob.glob(os.path.join(os.environ['ASSETS_DIR'], '*'))
-    selections = []
-    for aL in assetList:
-        # basename takes last folder in path.
-        selections.append(os.path.basename(aL)) 
-        # sort alphabetically
-    selections.sort()
-    answer = hou.ui.selectFromList(selections, message='Choose an asset to add/update textures for', exclusive=True)
-    if answer:
-        answer = answer[0]
-        assetName = selections[answer]
-        assetImageDir = os.path.join(os.environ['ASSETS_DIR'], assetName, 'images')
-
-        # Allow user to choose texture map in user local directory   
-        userDirectory = os.environ['USER_DIR']
-        userSelection = hou.ui.selectFile(start_directory=userDirectory, title='Select texture map, or folder of texture maps', image_chooser=True, pattern='*.jpg,*.jpeg,*.tiff,*.tif,*.png,*.exr') 
-        
-        #Allow user to search for texture in any directory
-        userSelection = os.path.expandvars(userSelection)
-
-        if os.path.isdir(userSelection):
-            folder_name = os.path.basename(os.path.dirname(userSelection))
-            texture_paths = glob.glob(os.path.join(userSelection, '*'))
-
-            newFileDir = os.path.join(assetImageDir, folder_name)
-            os.system('rm -rf '+newFileDir)
-            print 'newFileDir:: '+newFileDir
-            os.makedirs(newFileDir)
-            
-            for t in texture_paths:
-                convert_texture(t, assetImageDir, folder_name=folder_name)
-        else:
-            convert_texture(userSelection, assetImageDir)
-
-        ui.infoWindow('Done.')
+# convert_texture(userTextureMap, assetImageDir, folder_name='') and newTexture() moved to texture_update_methods.py
 
 def getInfo(node):
     if node == None:
