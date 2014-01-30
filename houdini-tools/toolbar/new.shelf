@@ -11,9 +11,9 @@
 """Creates a new (empty) asset in the PRODUCTION/otls folder with the name given."""
 
 In order to use the new asset it must first be checked out using the checkout tool button.]]></helpText>
-    <script scriptType="python"><![CDATA[import hou_asset_mgr as mgr
+    <script scriptType="python"><![CDATA[import new_asset_methods as nam
 
-mgr.new()
+nam.new()
 ]]></script>
   </tool>
 </shelfDocument>

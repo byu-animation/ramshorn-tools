@@ -11,13 +11,16 @@
 """Unlock the database even if someone else has an asset locked. Use with caution!"""
 
 This tool is dangerous and should be used with caution!]]></helpText>
-    <script scriptType="python"><![CDATA[import hou_asset_mgr as mgr
+    <script scriptType="python"><![CDATA[
+
+import hou_asset_mgr as mgr
+import lighting_asset_methods as lighting
 
 node = mgr.getSelectedNode()
 if node != None:
     mgr.unlockOTLbyNode(node)
 else:
-    mgr.unlockLightingFile()
+    lighting.unlockLightingFile()
 ]]></script>
   </tool>
 </shelfDocument>

@@ -12,12 +12,15 @@
 
 NOTE:
     This tool is still under construction and may not work exactly as expected yet.]]></helpText>
-    <script scriptType="python"><![CDATA[import hou_asset_mgr as mgr
+    <script scriptType="python"><![CDATA[
+
+import hou_asset_mgr as mgr
+import lighting_asset_methods as lighting
 
 node = mgr.getSelectedNode()
 if node != None:
     mgr.discard(node)
 else:
-    mgr.discardLightingFile()]]></script>
+    lighting.discardLightingFile()]]></script>
   </tool>
 </shelfDocument>
