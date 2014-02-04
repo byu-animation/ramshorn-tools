@@ -332,13 +332,13 @@ def rename(node = None):
                     hou.ui.displayMessage('The following assets are depenent on this asset: \n\n'+printList(dependents)+'\nModify these assets first before attempting to rename again!!', title='Can NOT rename!', severity=hou.severityType.Error)
                     return
 
-                info = getFileInfo(oldfilename)
-                if not info[2]:
-                    #TODO: replace ui function
-                    if ui.passwordWindow('r3n@m3p@ssw0rd', 'Enter the rename password...'):
-                        resp = hou.ui.displayMessage("Enter the New Operator Label", title="Rename OTL")
-                        if resp != None and resp.strip() != '':
-                            name = formatName(resp)
+                nodeDir = os.path.join(os.environ['ASSETS_DIR'], oldAssetName, 'otl')
+                info = amu.getVersionedFolderInfo(nodeDir);
+                if info[0] == "":
+                    if passwordWindow('r3n@m3p@ssw0rd', 'Enter the rename password...'):
+                        resp = hou.ui.readInput("Enter the New Operator Label", title="Rename OTL")
+                        if resp != None and resp[1].strip() != '':
+                            name = formatName(resp[1])
                             newfilename = name.replace(' ', '_')
                             newfilepath = os.path.join(OTLDIR, newfilename+'.otl')
                             if os.path.exists(newfilepath):
@@ -354,7 +354,7 @@ def rename(node = None):
                                 subprocess.check_call( ['rm','-f',oldlibraryPath] )
                                 amu.renameAsset(assetDirPath, newfilename)
                 else:
-                    logname, realname = amu.lockedBy(info[3].encode('utf-8'))
+                    logname, realname = amu.lockedBy(info[0].encode('utf-8'))
                     whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
                     errstr = 'Cannot checkout asset. Locked by: \n\n' + whoLocked
                     hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
@@ -383,9 +383,11 @@ def deleteAsset(node = None):
                     hou.ui.displayMessage('The following assets are depenent on this asset: \n\n'+printList(dependents)+'\nModify these assets first before attempting to delete again!!', title='Can NOT delete!', severity=hou.severityType.Error)
                     return
 
-                info = getFileInfo(oldfilename)
-                if info[2]:
-                    logname, realname = amu.lockedBy(info[3].encode('utf-8'))
+                nodeDir = os.path.join(os.environ['ASSETS_DIR'], oldAssetName, 'otl')
+                info = amu.getVersionedFolderInfo(nodeDir);
+                print info[0]
+                if not info[0] == "":
+                    logname, realname = amu.lockedBy(info[0].encode('utf-8'))
                     whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
                     errstr = 'Cannot delete asset. Locked by: \n\n' + whoLocked
                     hou.ui.displayMessage(errstr, title='Asset Locked', severity=hou.severityType.Error)
@@ -398,8 +400,7 @@ def deleteAsset(node = None):
                 message = "The following paths and files will be deleted:\n" + assetDirPath + "\n" + oldlibraryPath
                 hou.ui.displayMessage(message, title='Asset Deleted', severity=hou.severityType.Error)
 
-                #TODO remove ui module
-                if ui.passwordWindow('d3l3t3p@ssw0rd', wmessage='Enter the deletion password ...'):
+                if passwordWindow('d3l3t3p@ssw0rd', wmessage='Enter the deletion password ...'):
                     node.destroy()
                     hou.hda.uninstallFile(oldlibraryPath, change_oplibraries_file=False)
                     try:
@@ -482,6 +483,23 @@ def getInfo(node):
             message = 'Not Checked out.\n'
         message = message+'Last checked in by '+nodeInfo[3]
         hou.ui.displayMessage(message, title='Node Info')
+
+def passwordWindow(password, wtitle='Enter Password', wmessage='Enter Password', wlabel='Password'):
+    '''Pop up a window with a text window to enter a password into
+
+Returns true when the password entered matches the password given as a 
+parameter and false otherwise.'''
+    resp = ''
+    ok = 0
+    first = True
+    label = (wlabel + ':',)
+    while ok == 0 and resp != password:
+        if not first:
+            hou.ui.displayMessage('Incorrect!\nTry Again.', buttons=('Ok',), title='Error', severity=hou.severityType.Message)
+        ok, resp = hou.ui.readMultiInput(message=wmessage, input_labels=label, password_input_indices=(0,), buttons=('OK', 'Cancel'), title=wtitle)
+        resp = resp[0]
+        first = False
+    return ok == 0
 
 # make getNodeInfo an alias of getInfo
 getNodeInfo = getInfo
