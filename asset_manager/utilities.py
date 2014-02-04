@@ -106,6 +106,10 @@ def createNewShotFolders(parent, name):
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'point_cache')
+	addProjectFolder(new_dir, 'playblasts')
+	addProjectFolder(new_dir, 'renders')
+	addProjectFolder(os.path.join(new_dir, 'renders'), 'lighting')
+	addProjectFolder(os.path.join(new_dir, 'renders'), 'compositing')
 
 def createNewPrevisFolders(parent, name):
 	# This is basically the same as "createNewShotFolders" method
@@ -121,6 +125,7 @@ def createNewPrevisFolders(parent, name):
 	addProjectFolder(new_dir, 'animation_cache')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
+	addProjectFolder(new_dir, 'playblasts')
 
 def isEmptyFolder(dirPath):
 	return not bool(glob.glob(os.path.join(dirPath, '*')))
