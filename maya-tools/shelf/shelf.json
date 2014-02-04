@@ -36,6 +36,16 @@
             "python_file":"alembic_tagger.py"
         },
         {
+            "icon":"alembic_untagger.xpm",
+            "annotation":"Remove Alembic export tags from objects.",
+            "python_file":"alembic_untagger.py"
+        },
+        {
+            "icon":"list_alembic_tags.xpm",
+            "annotation":"List all the objects with alembic tags in the scene.",
+            "python_file":"list_alembic_tags.py"
+        },
+        {
             "icon":"alembic_exporter.xpm",
             "annotation":"Export loaded references to alembic",
             "python_file":"alembic_exporter.py"

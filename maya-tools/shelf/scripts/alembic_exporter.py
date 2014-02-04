@@ -1,119 +1,183 @@
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+
 import maya.cmds as cmds
+import maya.OpenMayaUI as omu
 from pymel.core import *
 import utilities as amu #asset manager utilities
 import os
+import sip
 
-def saveFile():
-  if not cmds.file(q=True, sceneName=True) == '':
-    cmds.file(save=True, force=True) #save file
+WINDOW_WIDTH = 330
+WINDOW_HEIGHT = 300
 
-def getAssetName(filepath):
-  return os.path.basename(filepath).split('.')[0]
+def maya_main_window():
+	ptr = omu.MQtUtil.mainWindow()
+	return sip.wrapinstance(long(ptr), QObject)		
 
-def showConfirmAlembicDialog(references):
-  return cmds.confirmDialog( title         = 'Export Alembic'
-                           , message       = 'Export Alembic for:\n'+str(references)
-                           , button        = ['Yes', 'No']
-                           , defaultButton = 'Yes'
-                           , cancelButton  = 'No'
-                           , dismissString = 'No')
+class AlembicExportDialog(QDialog):
+	def __init__(self, parent=maya_main_window()):
+	#def setup(self, parent):
+		QDialog.__init__(self, parent)
+		self.saveFile()
+		self.setWindowTitle('Select Objects for Export')
+		self.setFixedSize(WINDOW_WIDTH, WINDOW_HEIGHT)
+		self.create_layout()
+		self.create_connections()
+		self.create_export_list()
+	
+	def create_layout(self):
+		#Create the selected item list
+		self.selection_list = QListWidget()
+		self.selection_list.setSelectionMode(QAbstractItemView.ExtendedSelection);
+		self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
 
-def get_root_nodes():
-    root_nodes = ls(assemblies=True)
-    ignoreables = ["persp", "top", "front", "side"]
-    returnables = []
-    for node in root_nodes:
-        if node in ignoreables: 
-            continue
-        returnables.append(node)
-    return returnables
+		#Create Export Alembic and Cancel buttons
+		self.export_button = QPushButton('Export Alembic')
+		self.cancel_button = QPushButton('Cancel')
+		
+		#Create button layout
+		button_layout = QHBoxLayout()
+		button_layout.setSpacing(2)
+		button_layout.addStretch()
+	
+		button_layout.addWidget(self.export_button)
+		button_layout.addWidget(self.cancel_button)
+		
+		#Create main layout
+		main_layout = QVBoxLayout()
+		main_layout.setSpacing(2)
+		main_layout.setMargin(2)
+		main_layout.addWidget(self.selection_list)
+		main_layout.addLayout(button_layout)
+		
+		self.setLayout(main_layout)
+	
+	def create_connections(self):
+		#Connect the buttons
+		self.connect(self.export_button, SIGNAL('clicked()'), self.export_alembic)
+		self.connect(self.cancel_button, SIGNAL('clicked()'), self.close_dialog)
+	
+	def create_export_list(self):
+		#Remove all items from the list before repopulating
+		self.selection_list.clear()
+		
+		#Add the list to select from
+		loadedRef = self.getLoadedReferences()
+		
+		for ref in loadedRef:
+			item = QListWidgetItem(ref) 
+			item.setText(ref)
+			self.selection_list.addItem(item)
+		
+		self.selection_list.sortItems(0)
+	
+	def getLoadedReferences(self):
+		references = cmds.ls(references=True)
+		loaded=[]
+		print "Loaded References: "
+		for ref in references:
+			print type(ref)
+			if cmds.referenceQuery(ref, isLoaded=True):
+				loaded.append(ref)
+		return loaded
+	
+	
+	########################################################################
+	# SLOTS
+	########################################################################
+	def export_alembic(self):
+		self.saveFile()
+		
+		selectedReferences = []
+		selectedItems = self.selection_list.selectedItems()
+		for item in selectedItems:
+			selectedReferences.append(item.text())
+		
+		if self.showConfirmAlembicDialog(selectedReferences) == 'Yes':
+			loadPlugin("AbcExport")
+			for ref in selectedReferences:
+				abcFilePath = self.build_alembic_filepath(ref)
+				print abcFilePath
+				command = self.build_alembic_command(ref, abcFilePath)
+				print command
+				Mel.eval(command)
+		
+		self.close_dialog()
+	
+	def saveFile(self):
+		if not cmds.file(q=True, sceneName=True) == '':
+			cmds.file(save=True, force=True) #save file
+	
+	def showConfirmAlembicDialog(self, references):
+		return cmds.confirmDialog( title         = 'Export Alembic'
+		                         , message       = 'Export Alembic for:\n' + str(references)
+		                         , button        = ['Yes', 'No']
+		                         , defaultButton = 'Yes'
+		                         , cancelButton  = 'No'
+		                         , dismissString = 'No')
+	
+	def build_alembic_filepath(self, ref):
+		#Get Shot Directory
+		filePath = cmds.file(q=True, sceneName=True)
+		toCheckin = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(filePath)))
+		dest = amu.getCheckinDest(toCheckin)
+		
+		#Get Asset Name
+		refPath = cmds.referenceQuery(unicode(ref), filename=True)
+		assetName = os.path.basename(refPath).split('.')[0]
+		
+		return os.path.join(os.path.dirname(dest), 'animation_cache', 'abc', assetName+'.abc')
 
-def check_tag(node):
-    if node.hasAttr("BYU_Alembic_Export_Flag"):
-        return True
+	def build_alembic_command(self, ref, abcfilepath):
+		tagged = self.get_tagged_node(ref)
 
-def tagged_children_generator(node):
-    if check_tag(node):
-        yield node
-    else:
-        for child in node.listRelatives(c=True):
-            for tagged in tagged_children_generator(child):
-                yield tagged
+		if tagged == "":
+			return ""
 
-def list_tagged_nodes():
-    for root in get_root_nodes():
-        for tagged in tagged_children_generator(root):
-            yield tagged
+		roots_string = ""
+		roots_string = " ".join([roots_string, "-root %s"%(tagged.name())])
+		start_frame = playbackOptions(q=1, minTime=True) - 5
+		end_frame = playbackOptions(q=1, maxTime=True) + 5
+		command = 'AbcExport -j "%s -frameRange %s %s -step 0.25 -writeVisibility -nn -uv -file %s"'%(roots_string, str(start_frame), str(end_frame), abcfilepath)
+		return command
 
-def build_alembic_command(abcfilepath):
-    tagged = list_tagged_nodes()
+	def get_tagged_node(self, ref):
+		refNodes = cmds.referenceQuery(unicode(ref), nodes=True)
+		rootNode = ls(refNodes[0])
+		taggedNode = self.search_children(rootNode[0])
 
-    roots_string = ""
-    for node in tagged:
-        roots_string = " ".join([roots_string, "-root %s"%(node.name())])
-    start_frame = playbackOptions(q=1, minTime=True) - 5
-    end_frame = playbackOptions(q=1, maxTime=True) + 5
-    command = 'AbcExport -j "%s -frameRange %s %s -step 0.25 -writeVisibility -nn -uv -file %s"'%(
-                                    roots_string, 
-                                    str(start_frame), 
-                                    str(end_frame), 
-                                    abcfilepath)
-    return command
+		if taggedNode == "":
+			self.showNoTagFoundDialog(unicode(ref))
+			return ""
 
-def convert(abcfilepath):
-  loadPlugin("AbcExport")
-  command = build_alembic_command(abcfilepath)
-  print command
-  Mel.eval(command)
+		print taggedNode
+		return taggedNode
 
-def export_alembic():
-  print "Exporting Alembic"
+	def search_children(self, node):
+		for child in node.listRelatives(c=True):
+			if child.hasAttr("BYU_Alembic_Export_Flag"):
+				return child
+			else:
+				taggedChild = self.search_children(child)
+				if taggedChild != "":
+					return taggedChild
+		return ""
 
-  saveFile()
-
-  filePath = cmds.file(q=True, sceneName=True)
-  toCheckin = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(filePath)))
-  dest = amu.getCheckinDest(toCheckin)
-
-
-  references = cmds.ls(references=True)
-  loaded=[]
-  for ref in references:
-    if cmds.referenceQuery(ref, isLoaded=True):
-      loaded.append(ref)
-      cmds.file(unloadReference=ref)
-
-  if showConfirmAlembicDialog(loaded) == 'Yes':
-    print loaded
-    for ref in loaded:
-      print "\n\n\n\n**************************************************************\n"
-      constraints = []
-      #TODO refactor the controller stuff to work with a 'prop list' it will scale easier
-      if 'controller' in ref:
-        for c in loaded:
-          if 'owned_tommy_rig_stable' in c or 'owned_abby_rig_stable' in c or 'owned_jeff_rig_stable' in c:
-            constraints.append(c);
-      
-      cmds.file(loadReference=ref)
-      for c in constraints:
-        print c
-        cmds.file(loadReference=c)
-
-      refPath = cmds.referenceQuery(ref, filename=True)
-      assetName = getAssetName(refPath)
-      print dest
-      print filePath
-      print refPath
-      print assetName
-      saveFile()
-      abcfilepath = os.path.join(os.path.dirname(dest), 'animation_cache', 'abc', assetName+'.abc')
-      convert(abcfilepath)
-      cmds.file(unloadReference=ref)
-
-    for ref in loaded:
-      cmds.file(loadReference=ref)
-
-saveFile()
+	def showNoTagFoundDialog(self, ref):
+		return cmds.confirmDialog( title         = 'No Alembic Tag Found'
+		                         , message       = 'Unable to locate Alembic Export tag for ' + ref + '.'
+		                         , button        = ['OK']
+		                         , defaultButton = 'OK'
+		                         , cancelButton  = 'OK'
+		                         , dismissString = 'OK')
+	
+	def close_dialog(self):
+		self.close()
 
 def go():
-  export_alembic()
+	dialog = AlembicExportDialog()
+	dialog.show()
+	
+if __name__ == '__main__':
+	go()
