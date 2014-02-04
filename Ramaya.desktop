@@ -1,0 +1,13 @@
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Icon[en_US]=/usr/local/Mari2.5v2/Media/Icons/Mari.128x128.png
+Name[en_US]=Ramaya
+Exec=/groups/ramshorn/ramshorn-tools/project_maya.sh
+Comment[en_US]=Ram's Horn Mari
+Name=Ramari
+Comment=Ram's Horn Mari
+Icon=/usr/autodesk/maya/icons/mayaico.png
+Comment[en_US.UTF-8]=Ram's Horn Maya

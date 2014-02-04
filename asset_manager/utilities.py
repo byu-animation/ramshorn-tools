@@ -105,6 +105,7 @@ def createNewShotFolders(parent, name):
 	addProjectFolder(new_dir, 'animation_cache')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
+	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'point_cache')
 
 def createNewPrevisFolders(parent, name):
 	# This is basically the same as "createNewShotFolders" method
@@ -345,7 +346,7 @@ def getCheckoutDest(coPath):
 	nodeInfo = ConfigParser()
 	nodeInfo.read(os.path.join(coPath, ".nodeInfo"))
 	version = nodeInfo.get("Versioning", "latestversion")
-	return os.path.join(getUserCheckoutDir(), os.path.basename(os.path.dirname(coPath))+"_"+os.path.basename(coPath)+"_"+version)
+	return os.path.join(getUserCheckoutDir(), os.path.basename(os.path.dirname(coPath))+"_"+os.path.basename(coPath)+"_"+("%03d" % int(version)))
 
 def lockedBy(logname):
     """
@@ -563,16 +564,21 @@ def checkin(toCheckin):
 ################################################################################
 def getAvailableInstallFiles(vDirPath):
 	"""
-	@returns: a list of all file paths in this directory
+	@returns: a list of all files in the latest version of this directory
 	"""
 	#if not os.path.exists(os.path.join(vDirPath, ".nodeInfo")):
 	if not isVersionedFolder(vDirPath):
 		raise Exception("Not a versioned folder.")
-	
+
 	nodeInfo = ConfigParser()
 	nodeInfo.read(os.path.join(vDirPath, ".nodeInfo"))
 	version = nodeInfo.getint("Versioning", "latestversion")
 	latest = os.path.join(vDirPath, "src", "v"+("%03d" % version))
+
+	#delete backup folder if it exists
+	backupDir = os.path.join(latest, "backup")
+	if os.path.exists(backupDir):
+		shutil.rmtree(backupDir)
 	
 	files = glob.glob(os.path.join(latest,'*'))
 	print files

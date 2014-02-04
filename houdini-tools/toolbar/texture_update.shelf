@@ -18,8 +18,8 @@ new_texture.go()]]></script>
   </tool>
 
   <tool name="texture_update" label="Texture Update" icon="PLASMA_App">
-    <script scriptType="python"><![CDATA[import hou_asset_mgr as mgr
+    <script scriptType="python"><![CDATA[import texture_update_methods as tum
 
-mgr.newTexture()]]></script>
+tum.newTexture()]]></script>
   </tool>
 </shelfDocument>

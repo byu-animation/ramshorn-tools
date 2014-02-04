@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 import maya.cmds as cmd
 import maya.OpenMayaUI as omu
 import sip
-import os, glob
+import os, glob, shutil
 import utilities as amu
 
 CHECKOUT_WINDOW_WIDTH = 300
@@ -195,9 +195,15 @@ class RollbackDialog(QDialog):
                 else:
                     destpath = amu.getCheckoutDest(toCheckout)
 
-            toOpen = os.path.join(destpath, self.get_filename(toCheckout)+'.mb')
-            self.ORIGINAL_FILE_NAME = toOpen
             amu.tempSetVersion(toCheckout, latestVersion)
+            # move to correct checkout directory
+            correctCheckoutDir = amu.getCheckoutDest(toCheckout)
+            if not destpath==correctCheckoutDir:
+                if os.path.exists(correctCheckoutDir):
+                    shutil.rmtree(correctCheckoutDir)
+                os.rename(destpath, correctCheckoutDir)
+            toOpen = os.path.join(correctCheckoutDir, self.get_filename(toCheckout)+'.mb')
+            self.ORIGINAL_FILE_NAME = toOpen
             if not os.path.exists(toOpen):
                 # create new file
                 cmd.file(force=True, new=True)
