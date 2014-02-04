@@ -133,7 +133,7 @@ def decodeFileName():
         # return the assetName, assetType, and version
         return [assetName, assetType, version] 
 
-def installGeometry(path=os.path.dirname(mc.file(q=True, sceneName=True))):
+def installGeometry(path=''):
 	'''
 		Function to install the geometry into the PRODUCTION asset directory
 
@@ -142,6 +142,7 @@ def installGeometry(path=os.path.dirname(mc.file(q=True, sceneName=True))):
 		@return: True is the files were moved successfully
 		@throws: a shutil exception if the move failed
 	'''
+	path=os.path.dirname(mc.file(q=True, sceneName=True))
 	assetName, assetType, version = decodeFileName()
 
 	srcOBJ = os.path.join(path, 'geo/objFiles')
@@ -174,7 +175,7 @@ def installGeometry(path=os.path.dirname(mc.file(q=True, sceneName=True))):
 
 
 
-def generateGeometry(path=os.path.dirname(mc.file(q=True, sceneName=True))):	
+def generateGeometry(path=''):	
 	'''
 		Function for generating geometry for Maya files.
 	
@@ -188,6 +189,7 @@ def generateGeometry(path=os.path.dirname(mc.file(q=True, sceneName=True))):
 		@post: Missing filenames are printed out to both the Maya terminal as well
 				as presented in a Maya confirm dialog.
 	'''
+	path=os.path.dirname(mc.file(q=True, sceneName=True))
 	print 'generateGeometry start'
 	if not os.path.exists (os.path.join(path, 'geo')):
 		os.makedirs(os.path.join(path, 'geo'))

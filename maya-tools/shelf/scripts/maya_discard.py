@@ -6,9 +6,8 @@ import os
 def showWarningDialog(): 
         return cmds.confirmDialog( title         = 'Discard Confirmation' 
                                  , message       = 'YOU ARE ABOUT TO IRREVOKABLY DISCARD ALL CHANGES YOU HAVE MADE. '
-                                                   'Please think this through very carefully.\r\n\r\nNow that we have '
-                                                   'gotten that straightened out, are you sure you want to discard '
-                                                   'your changes?'
+                                                   'Please think this through very carefully.\r\n\r\n '
+                                                   'Are you sure you want to discard your changes?'
                                  , button        = ['Yes', 'No', 'Brent']
                                  , defaultButton = 'No'
                                  , cancelButton  = 'No'
@@ -18,7 +17,6 @@ def discard():
         filePath=cmds.file(q=True, sceneName=True)
         if not filePath:
           return
-        print filePath
         dlgResult = showWarningDialog()
         if dlgResult == 'Yes':
                 # get discard directory before opening new file

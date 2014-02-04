@@ -34,7 +34,7 @@ layout.addWidget(gui.QLabel("Welcome to the uber palette."))
 #ButtonCreation
 createProjectPB = gui.QPushButton("Create Project")
 layout.addWidget(createProjectPB)
-#connect(createProjectPB.clicked, projectCreate)
+connect(createProjectPB.clicked, projectCreate)
 
 updateOBJPB = gui.QPushButton("Update OBJs")
 layout.addWidget(updateOBJPB)

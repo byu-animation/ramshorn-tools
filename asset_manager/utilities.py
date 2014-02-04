@@ -59,7 +59,9 @@ def createNodeInfoFile(dirPath, toKeep):
 	nodeInfo.set('Versioning', 'LastCheckoutUser', username)
 	nodeInfo.set('Versioning', 'LastCheckinTime', timestamp)
 	nodeInfo.set('Versioning', 'LastCheckinUser', username)
-	
+	nodeInfo.add_section('Comments')
+	nodeInfo.set('Comments', 'v000', 'New')
+
 	_writeConfigFile(os.path.join(dirPath, ".nodeInfo"), nodeInfo)
 	
 def addVersionedFolder(parent, name, toKeep):
@@ -84,6 +86,7 @@ def createNewAssetFolders(parent, name):
 	addProjectFolder(parent, name)
 	addVersionedFolder(new_dir, 'model', 5)
 	addVersionedFolder(new_dir, 'rig', -1)
+	addVersionedFolder(new_dir, 'otl', -1)
 	os.makedirs(os.path.join(new_dir, "geo"))
 	os.makedirs(os.path.join(new_dir, "images"))
 	os.makedirs(os.path.join(new_dir, "reference"))
@@ -98,6 +101,22 @@ def createNewShotFolders(parent, name):
 	addProjectFolder(parent, name)
 	addVersionedFolder(new_dir, 'animation', -1)
 	addVersionedFolder(new_dir, 'lighting', 5)
+	addVersionedFolder(new_dir, 'compositing', 5)
+	addProjectFolder(new_dir, 'animation_cache')
+	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
+	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
+	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'point_cache')
+
+def createNewPrevisFolders(parent, name):
+	# This is basically the same as "createNewShotFolders" method
+	# doesn't include a lighting folder; may need to add/remove additional folders for production
+	if parent != os.environ['PREVIS_DIR']:
+		raise Exception("Shot folders must be created in "+os.environ['PREVIS_DIR'])
+	
+	new_dir = os.path.join(parent, name)
+	print 'creating :'+new_dir
+	addProjectFolder(parent, name)
+	addVersionedFolder(new_dir, 'animation', -1)
 	addVersionedFolder(new_dir, 'compositing', 5)
 	addProjectFolder(new_dir, 'animation_cache')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
@@ -180,6 +199,15 @@ def isInstalled(dirPath):
 	return bool(glob.glob(os.path.join(dirPath, 'stable', '*stable*')))
 
 def getVersionedFolderInfo(dirPath):
+	"""
+	returns a list containing the following information about the asset in dirPath:
+	[0] last person to check it out, if locked
+	[1] last person to check it in
+	[2] time it was last checked in
+	[3] latest comment on checkin
+	[4] if it is isInstalled
+	[5] filepath to install directory
+	"""
 	if not isVersionedFolder(dirPath):
 		raise Exception("Not a versioned folder")
 	
@@ -192,6 +220,9 @@ def getVersionedFolderInfo(dirPath):
 		nodeInfo.append("")
 	nodeInfo.append(cp.get("Versioning", "lastcheckinuser"))
 	nodeInfo.append(cp.get("Versioning", "lastcheckintime"))
+	versionNum = int(cp.get("Versioning", "latestversion"))
+	latestVersion = "v"+("%03d" % versionNum) 
+	nodeInfo.append(cp.get("Comments", latestVersion))
 	if isInstalled(dirPath):
 		nodeInfo.append("Yes")
 		nodeInfo.append(glob.glob(os.path.join(dirPath, 'stable', '*stable*'))[0])
@@ -199,6 +230,15 @@ def getVersionedFolderInfo(dirPath):
 		nodeInfo.append("No")
 		nodeInfo.append("")
 	return nodeInfo
+
+def getVersionComment(dirPath, version):
+	if not isVersionedFolder(dirPath):
+		raise Exception("Not a versioned folder")
+	
+	nodeInfo = []
+	cp = ConfigParser()
+	cp.read(os.path.join(dirPath, ".nodeInfo")) 
+	return cp.get("Comments",version)
 
 def tempSetVersion(chkInDest, version):
     """
@@ -306,7 +346,7 @@ def getCheckoutDest(coPath):
 	nodeInfo = ConfigParser()
 	nodeInfo.read(os.path.join(coPath, ".nodeInfo"))
 	version = nodeInfo.get("Versioning", "latestversion")
-	return os.path.join(getUserCheckoutDir(), os.path.basename(os.path.dirname(coPath))+"_"+os.path.basename(coPath)+"_"+version)
+	return os.path.join(getUserCheckoutDir(), os.path.basename(os.path.dirname(coPath))+"_"+os.path.basename(coPath)+"_"+("%03d" % int(version)))
 
 def lockedBy(logname):
     """
@@ -418,14 +458,29 @@ def canCheckin(toCheckin):
 	
 	return result
 
-def purge(dirPath, upto):
+def setComment(toCheckin, comment):
+	chkoutInfo = ConfigParser()
+	chkoutInfo.read(os.path.join(toCheckin, ".checkoutInfo"))
+	chkInDest = chkoutInfo.get("Checkout", "checkedoutfrom")
+
+	nodeInfo = ConfigParser()
+	nodeInfo.read(os.path.join(chkInDest, ".nodeInfo"))
+	newVersion = nodeInfo.getint("Versioning", "latestversion") + 1
+	timestamp = time.strftime("%a, %d %b %Y %I:%M:%S %p", time.localtime())
+	commentLine = getUsername() + ': ' + timestamp + ': ' + '"' + comment + '"' 
+	nodeInfo.set("Comments", 'v' + "%03d" % (newVersion,), commentLine)	
+	_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
+
+def purge(dirPath, nodeInfo, upto):
 	"""
 	purges all folders in dirPath with a version less than upto
 	"""
 	files = glob.glob(os.path.join(dirPath, '*'))
 	for f in files:
-		if int(os.path.basename(f).split('v')[1]) < upto:
+		version = int(os.path.basename(f).split('v')[1])
+		if version < upto:
 			shutil.rmtree(f)
+			nodeInfo.remove_option("Comments", 'v' + "%03d" % (version,))
 
 def purgeAfter(dirPath, after):
     """
@@ -440,6 +495,7 @@ def discard(toDiscard):
 	"""
 	Discards a local checked out folder without creating a new version.
 	"""
+	print toDiscard
 	chkoutInfo = ConfigParser()
 	chkoutInfo.read(os.path.join(toDiscard, ".checkoutInfo"))
 	chkInDest = chkoutInfo.get("Checkout", "checkedoutfrom")
@@ -451,18 +507,21 @@ def discard(toDiscard):
 	_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
 
 	shutil.rmtree(toDiscard)
+	if(os.path.exists(toDiscard)):
+		os.rmdir(toDiscard)
 
 def getCheckinDest(toCheckin):
 	chkoutInfo = ConfigParser()
 	chkoutInfo.read(os.path.join(toCheckin, ".checkoutInfo"))
 	return chkoutInfo.get("Checkout", "checkedoutfrom")
 
-def checkin(toCheckin, isAnim):
+def checkin(toCheckin):
 	"""
 	Checks a folder back in as the newest version
 	@precondition: toCheckin is a valid path
 	@precondition: canCheckin() == True OR all conflicts have been resolved
 	"""
+	print toCheckin
 	chkoutInfo = ConfigParser()
 	chkoutInfo.read(os.path.join(toCheckin, ".checkoutInfo"))
 	chkInDest = chkoutInfo.get("Checkout", "checkedoutfrom")
@@ -491,7 +550,8 @@ def checkin(toCheckin, isAnim):
 	
 	#print glob.glob(os.path.join(chkInDest, "src", "*"))
 	if toKeep > 0:
-		purge(os.path.join(chkInDest, "src"), newVersion - toKeep)
+		purge(os.path.join(chkInDest, "src"), nodeInfo, newVersion - toKeep)
+		_writeConfigFile(os.path.join(chkInDest, ".nodeInfo"), nodeInfo)
 
 	# Clean up
 	shutil.rmtree(toCheckin)
@@ -504,16 +564,21 @@ def checkin(toCheckin, isAnim):
 ################################################################################
 def getAvailableInstallFiles(vDirPath):
 	"""
-	@returns: a list of all file paths in this directory
+	@returns: a list of all files in the latest version of this directory
 	"""
 	#if not os.path.exists(os.path.join(vDirPath, ".nodeInfo")):
 	if not isVersionedFolder(vDirPath):
 		raise Exception("Not a versioned folder.")
-	
+
 	nodeInfo = ConfigParser()
 	nodeInfo.read(os.path.join(vDirPath, ".nodeInfo"))
 	version = nodeInfo.getint("Versioning", "latestversion")
 	latest = os.path.join(vDirPath, "src", "v"+("%03d" % version))
+
+	#delete backup folder if it exists
+	backupDir = os.path.join(latest, "backup")
+	if os.path.exists(backupDir):
+		shutil.rmtree(backupDir)
 	
 	files = glob.glob(os.path.join(latest,'*'))
 	print files
@@ -560,6 +625,7 @@ def install(vDirPath, srcFilePath):
 	print newInstFilePath
 	
 	shutil.copy(srcFilePath, newInstFilePath)
+	return newInstFilePath
 
 def runAlembicConverter(vDirPath, srcFilePath, filename=None):
 	if filename is None:

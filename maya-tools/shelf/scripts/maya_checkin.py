@@ -70,6 +70,19 @@ def checkin():
         references = cmds.ls(references=True)
         loaded = []
         if amu.canCheckin(toCheckin) and saveGeo(): # objs must be saved before checkin
+		comment = 'Comment'
+		commentPrompt = cmds.promptDialog(
+				    title='Comment',
+				    message='What changes did you make?',
+				    button=['OK','Cancel'],
+				    defaultButton='OK',
+				    dismissString='Cancel',
+				sf = True)
+		if commentPrompt == 'OK':
+			comment = cmds.promptDialog(query=True, text=True);
+		else:
+			return
+		amu.setComment(toCheckin, comment)
                 dest = amu.getCheckinDest(toCheckin)
                 # if anim and showConfirmAlembicDialog() == 'Yes':
                 #   for ref in references:
@@ -95,7 +108,7 @@ def checkin():
 
                 saveFile()
                 cmds.file(force=True, new=True) #open new file
-                dest = amu.checkin(toCheckin, anim or rig or os.path.basename(os.path.dirname(filePath))[:32]=='owned_jeff_apartment_walls_model') #checkin
+                dest = amu.checkin(toCheckin) #checkin
                 srcFile = amu.getAvailableInstallFiles(dest)[0]
                 if rig:
                     amu.install(dest, srcFile)

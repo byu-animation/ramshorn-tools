@@ -4,7 +4,7 @@ from PyQt4.QtGui import *
 import maya.cmds as cmd
 import maya.OpenMayaUI as omu
 import sip
-import os, glob
+import os, glob, shutil
 import utilities as amu
 
 CHECKOUT_WINDOW_WIDTH = 300
@@ -31,15 +31,21 @@ class RollbackDialog(QDialog):
         self.selection_list = QListWidget()
         self.selection_list.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding) 
 
-        #Create Select and Cancel buttons
+        #Create Tag, Select, and Cancel buttons
         self.help_button = QPushButton('Help')
+        self.tag_button = QPushButton('Tag')
         self.checkout_button = QPushButton('Checkout')
         self.cancel_button = QPushButton('Cancel')
+	
+        #Create Label to hold asset info
+        self.version_info_label = QLabel("test")
+        self.version_info_label.setWordWrap(True)
 
         #Create button layout
         button_layout = QHBoxLayout()
         button_layout.setSpacing(2)
         button_layout.addStretch()
+        button_layout.addWidget(self.tag_button)
         button_layout.addWidget(self.checkout_button)
         button_layout.addWidget(self.cancel_button)
 
@@ -48,6 +54,7 @@ class RollbackDialog(QDialog):
         main_layout.setSpacing(2)
         main_layout.setMargin(2)
         main_layout.addWidget(self.selection_list)
+        main_layout.addWidget(self.version_info_label)
         main_layout.addWidget(self.help_button)
         main_layout.addLayout(button_layout)
         
@@ -61,12 +68,14 @@ class RollbackDialog(QDialog):
             
         #Connect the buttons
         self.connect(self.help_button, SIGNAL('clicked()'), self.help_dialog)
+        #self.connect(self.tag_button, SIGNAL('clicked()'), self.rename_tagged_version)
         self.connect(self.checkout_button, SIGNAL('clicked()'), self.checkout_version)
         self.connect(self.cancel_button, SIGNAL('clicked()'), self.close_dialog)
-
+	
     def update_selection(self, selection):
         #Remove all items from the list before repopulating
         self.selection_list.clear()
+        self.version_info_label.clear()
 
         #Add the list to select from
         for s in selection:
@@ -74,6 +83,21 @@ class RollbackDialog(QDialog):
             item.setText(os.path.basename(s))
             self.selection_list.addItem(item)
         self.selection_list.sortItems(0)
+
+    def get_asset_path(self):
+        # returns the path for a single asset
+        asset_name = str(self.current_item.text())
+        filePath = cmd.file(q=True, sceneName=True)
+        print 'filePath: '+filePath
+        if self.model_radio.isChecked():
+            filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
+        elif self.rig_radio.isChecked():
+            filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
+        elif self.animation_radio.isChecked():
+            filePath = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
+        elif self.previs_radio.isChecked():
+            filePath = os.path.join(os.environ['PREVIS_DIR'], asset_name, 'animation')
+        return filePath
 
     def refresh(self):
         filePath = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(self.ORIGINAL_FILE_NAME)))
@@ -98,6 +122,7 @@ class RollbackDialog(QDialog):
 
     def set_current_item(self, item):
         self.current_item = item
+        self.show_version_info()
 
     def show_no_file_dialog(self):
         return cmd.confirmDialog(  title           = 'No Such Version'
@@ -122,6 +147,15 @@ class RollbackDialog(QDialog):
                                    , defaultButton = 'Ok'
                                    , cancelButton  = 'Ok'
                                    , dismissString = 'Ok')
+#
+#    def rename_tagged_version(self):
+#        return cmd.promptDialog(  title           = 'Tagg it like its hot'
+#                                   , message       = 'Choose a good naming convention. Something you will remember... Forrrreeeeverrrrrr'
+#                                   , button        = ['Done' , 'NVM']
+#				   , defaultButton = 'Done'
+#                                )
+#        if result == 'Done':
+#       	    taggedVersion = cmd.promptDialog(query=True, text=True)
 
     # def open_version(self):
     #     dialogResult = self.verify_open_version_dialog()
@@ -161,15 +195,39 @@ class RollbackDialog(QDialog):
                 else:
                     destpath = amu.getCheckoutDest(toCheckout)
 
-            toOpen = os.path.join(destpath, self.get_filename(toCheckout)+'.mb')
-            self.ORIGINAL_FILE_NAME = toOpen
             amu.tempSetVersion(toCheckout, latestVersion)
+            # move to correct checkout directory
+            correctCheckoutDir = amu.getCheckoutDest(toCheckout)
+            if not destpath==correctCheckoutDir:
+                if os.path.exists(correctCheckoutDir):
+                    shutil.rmtree(correctCheckoutDir)
+                os.rename(destpath, correctCheckoutDir)
+            toOpen = os.path.join(correctCheckoutDir, self.get_filename(toCheckout)+'.mb')
+            self.ORIGINAL_FILE_NAME = toOpen
             if not os.path.exists(toOpen):
                 # create new file
                 cmd.file(force=True, new=True)
                 cmd.file(rename=toOpen)
                 cmd.file(save=True, force=True)
             self.close_dialog()
+
+    def show_version_info(self):
+        asset_version = str(self.current_item.text())
+        filePath = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(self.ORIGINAL_FILE_NAME)))
+        checkInDest = amu.getCheckinDest(filePath)
+        comment = amu.getVersionComment(checkInDest,asset_version)
+        self.version_info_label.setText(comment)
+   #
+   # def tag_version(self):
+   #    dialogResult = self.rename_tagged_version()
+   #   filePath = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(self.ORIGINAL_FILE_NAME)))
+   #     findPath = amu.getCheckinDest(filePath)
+   #     print findPath
+	# Doesn't work yet sorry :(    shutil.move(findPath, taggedVersion)
+		# When they click 'Done' it will query their text and put it undertagged Version. But the maya command asks to put strings in quotations
+		
+
+
 
     # too much power, not enough responsibility
     # def rollback(self):
