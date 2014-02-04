@@ -18,5 +18,6 @@
     <memberTool name="nodeInfo"/>
     <memberTool name="weeklyRender"/>
     <memberTool name="issue_submit"/>
+    <memberTool name="rollback"/>
   </toolshelf>
 </shelfDocument>

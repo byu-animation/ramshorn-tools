@@ -10,6 +10,7 @@ from ui_tools import ui, messageSeverity, fileMode
 from miscutil import fileutil
 
 import utilities as amu #asset manager utilites
+import houdini_rollback as rb #rollback tool
 
 JOB=os.environ['JOB']
 USERNAME=os.environ['USER']
@@ -878,4 +879,14 @@ def getInfo(node):
 
 # make getNodeInfo an alias of getInfo
 getNodeInfo = getInfo
+
+def rollbackOTL(node): # Calling rollback method in separate module
+	rb.rollbackOTL(node)
+
+def rollbackShot(): # Rollback for the separate shots.
+	rb.rollbackShotFiles()
+
+
+
+
 
