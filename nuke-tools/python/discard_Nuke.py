@@ -1,0 +1,36 @@
+import sys, os, glob
+import utilities as amu
+import nuke
+
+def get_file_path():
+	return nuke.callbacks.filenameFilter( nuke.root().name() )
+
+def get_checkout_path():
+	return os.path.basename(os.path.dirname(get_file_path()))
+
+def show_confirm_dialog():
+	return nuke.ask('YOU ARE ABOUT TO IRREVOKABLY DISCARD ALL CHANGES YOU HAVE MADE. '
+			'Please think this through very carefully.\r\n\r\nNow that we have '
+			'gotten that straightened out, are you sure you want to discard '
+			'your changes?')
+
+def show_dialog(text):
+	nuke.message(text)
+
+def discard():
+	file_path = get_file_path()
+	if file_path:
+		toDiscard = get_checkout_path()
+		if amu.isCheckedOutCopyFolder(toDiscard):
+			if show_confirm_dialog():
+				if nuke.scriptNew():
+					amu.discard(toDiscard)
+				else:
+					show_dialog('ERROR: Cannot discard')
+		else:
+			show_dialog('ERROR: Not checked out.')
+	else:
+		show_dialog('ERROR: Not a file.')
+
+def go():
+	discard()
