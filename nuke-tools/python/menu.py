@@ -1,6 +1,7 @@
 import checkin_Nuke as ci
 import checkout_Nuke as co
 import rollback_Nuke as rb
+import discard_Nuke as ds
 
 def checkout():
     # nuke.message('check out')
@@ -11,17 +12,14 @@ def checkin():
     ci.go()
 
 def discard():
-    nuke.message('discard')
+    ds.go()
 
-def unlock():
-	nuke.message('unlock')
 
 def rollback():
-    nuke.message('rollback')
+    rb.go()
 
 nuke.menu( 'Nuke' ).addCommand( 'Ramshorn/check out', 'checkout()')
 nuke.menu( 'Nuke' ).addCommand( 'Ramshorn/check in', 'checkin()')
 nuke.menu( 'Nuke' ).addCommand( 'Ramshorn/discard', 'discard()')
-nuke.menu( 'Nuke' ).addCommand( 'Ramshorn/unlock', 'unlock()')
 nuke.menu( 'Nuke' ).addCommand( 'Ramshorn/rollback', 'rollback()')
 
