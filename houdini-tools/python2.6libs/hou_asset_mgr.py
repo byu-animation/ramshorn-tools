@@ -12,6 +12,7 @@ import new_asset_methods
 import checkin_asset_methods
 
 import utilities as amu #asset manager utilites
+import houdini_rollback as rb #rollback tool
 
 JOB=os.environ['JOB']
 USERNAME=os.environ['USER']
@@ -503,4 +504,14 @@ parameter and false otherwise.'''
 
 # make getNodeInfo an alias of getInfo
 getNodeInfo = getInfo
+
+def rollbackOTL(node): # Calling rollback method in separate module
+	rb.rollbackOTL(node)
+
+def rollbackShot(): # Rollback for the separate shots.
+	rb.rollbackShotFiles()
+
+
+
+
 

@@ -5,6 +5,7 @@ import hou
 import hou_asset_mgr
 
 import utilities as amu #asset manager utilites
+import hou_asset_mgr as ham
 
 def checkoutLightingFile():
     print("checkoutLightingFile")
@@ -27,7 +28,7 @@ def checkoutLightingFile():
             else:
                 destpath = amu.getCheckoutDest(toCheckout)
 
-        toOpen = os.path.join(destpath, get_filename(toCheckout)+'.hipnc')
+        toOpen = os.path.join(destpath, ham.get_filename(toCheckout)+'.hipnc')
 
         if os.path.exists(toOpen):
             hou.hipFile.load(toOpen)
