@@ -59,24 +59,15 @@ def abcExport(selected, path):
 
 	abcfiles = []
 	
-	print "loading AbcExport, like a boss"
 	loadPlugin("AbcExport")
 	for geo in selected:
 		chop = geo.rfind('|')
 		parent_geo = geo[:chop]
 		abcFile = geo[(chop+1):] + ".abc"
-		# abcFilePath = abcFilePath.replace("Shape", "")
-		# abcFilePath = abcFilePath.replace(":", "_")
-		# abcFilePath = abcFilePath.replace("|", "_")
 		abcFile = formatFilename(abcFile)
 		abcFilePath = os.path.join(path, abcFile)
-		# abcFilePath = abc.build_alembic_filepath(ref)
 		print abcFilePath
-		# AbcExport -j "-fr 1 1 -root |pTorus1 -file /users/ugrad/j/jmoborn/maya/projects/default/cache/alembic/pTorus1.abc";
-		# AbcExport -j "-frameRange 1 1 -root pTorusShape1 -file /users/home2/ugrad/j/jmoborn/test/ramshorn/users/jmoborn/checkout/ramshorn_hello_world_model_005/geo/abcFiles/pTorus1.abc";
 		command = "AbcExport -j \"-frameRange 1 1 -root "+parent_geo+" -file "+abcFilePath+"\";"
-		# exporter = abc.AlembicExportDialog()
-		# command = exporter.build_alembic_command(geo, abcFilePath)
 		print command
 		Mel.eval(command)
 		abcfiles.append(abcFilePath)
@@ -188,7 +179,7 @@ def installGeometry(path=''):
 	srcABC = os.path.join(path, 'geo/abcFiles')
 	destOBJ = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/objFiles')
 	destBJSON = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/bjsonFiles')
-	destABC = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/abcFiles')
+	destABC = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/')
 
 	if os.path.exists(destOBJ):
 		shutil.rmtree(destOBJ)
@@ -209,9 +200,11 @@ def installGeometry(path=''):
 	except Exception as e:
 		print e
 
+	#treat alembic special so we don't mess up concurrent houdini reading . . .
 	print 'Copying '+srcABC+' to '+destABC
 	try:
-		shutil.copytree(src=srcABC, dst=destABC)
+		os.system('cp -rf '+srcABC+' '+destABC)
+		# shutil.copytree(src=srcABC, dst=destABC)
 	except Exception as e:
 		print e
 
