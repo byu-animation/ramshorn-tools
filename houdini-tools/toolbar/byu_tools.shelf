@@ -10,11 +10,11 @@
     <memberTool name="CheckoutOTL"/>
     <memberTool name="CheckinOTL"/>
     <memberTool name="RevertChanges"/>
-    <memberTool name="rename"/>
     <memberTool name="unlock DB"/>
-    <memberTool name="delete"/>
+    <memberTool name="rollback"/>
     <memberTool name="nodeInfo"/>
     <memberTool name="issue_submit"/>
-    <memberTool name="rollback"/>
+    <memberTool name="rename"/>
+    <memberTool name="delete"/>
   </toolshelf>
 </shelfDocument>
