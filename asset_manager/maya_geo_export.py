@@ -58,7 +58,9 @@ def abcExport(selected, path):
 		os.makedirs(path)
 
 	abcfiles = []
-
+	
+	print "loading AbcExport, like a boss"
+	loadPlugin("AbcExport")
 	for geo in selected:
 		chop = geo.rfind('|')
 		parent_geo = geo[:chop]
@@ -192,8 +194,8 @@ def installGeometry(path=''):
 		shutil.rmtree(destOBJ)
 	if os.path.exists(destBJSON):
 		shutil.rmtree(destBJSON)
-	if os.path.exists(destABC):
-		shutil.rmtree(destABC)
+	# if os.path.exists(destABC):
+	# 	shutil.rmtree(destABC)
 
 	print 'Copying '+srcOBJ+' to '+destOBJ
 	try:

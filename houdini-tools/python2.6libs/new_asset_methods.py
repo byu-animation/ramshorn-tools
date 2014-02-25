@@ -55,9 +55,9 @@ def newContainer(hpath):
             print "path " + newversionpath
             templateNode.type().definition().copyToHDAFile(newversionpath, new_name=filename, new_menu_name=name)
             stablepath = amu.install(newversiondir, newversionpath)
+            fileutil.clobberPermissions(stablepath)
             os.symlink(stablepath, newfilepath)
             hou.hda.installFile(newfilepath, change_oplibraries_file=True)
-            fileutil.clobberPermissions(newfilepath)
             newnode = hou.node(hpath).createNode(filename)
             
             # templateNode.type().definition().copyToHDAFile(newfilepath, new_name=filename, new_menu_name=name)
@@ -90,12 +90,12 @@ def newGeo(hpath):
         return
     answer = answer[0]
     sdir = '$JOB/production/assets/'
-    gfile = hou.ui.selectFile(start_directory=os.path.join(sdir, alist[answer]+'/geo'), title='Choose Geometry', chooser_mode=hou.fileChooserMode.Read, pattern='*.bjson, *.obj')
+    gfile = hou.ui.selectFile(start_directory=os.path.join(sdir, alist[answer]+'/geo'), title='Choose Geometry', chooser_mode=hou.fileChooserMode.Read, pattern='*.abc')
     if len(gfile) > 4 and gfile[:4] != '$JOB':
         hou.ui.displayMessage("Path must start with '$JOB'. Default geometry used instead.", title='Path Name', severity=hou.severityType.Error)
         templateNode.destroy()
     elif gfile != '':
-        hou.parm(templateNode.path() + '/read_file/file').set(gfile)
+        hou.parm(templateNode.path() + '/read_file/fileName').set(gfile)
 
 def determineHPATH():
     hpane = hou.ui.paneTabOfType(hou.paneTabType.NetworkEditor)
