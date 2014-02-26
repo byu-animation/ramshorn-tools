@@ -257,6 +257,7 @@ class CheckoutDialog(QDialog):
 			# create new file
 			cmd.file(force=True, new=True)
 			cmd.file(rename=toOpen)
+			cmd.viewClipPlane('perspShape', ncp=0.01)
 			cmd.file(save=True, force=True)
 		self.close_dialog()
 	
