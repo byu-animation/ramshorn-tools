@@ -3,7 +3,7 @@
 Version=1.0
 Type=Application
 Terminal=false
-Icon[en_US]=/usr/local/Mari2.5v2/Media/Icons/Mari.128x128.png
+Icon[en_US]=/usr/local/Nuke6.3v9/plugins/icons/NukeApp128.png
 Name[en_US]=NukesHorn
 Exec=/groups/ramshorn/ramshorn-tools/project_nuke.sh
 Comment[en_US]=Ram's Horn Mari
