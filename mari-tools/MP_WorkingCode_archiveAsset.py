@@ -13,13 +13,14 @@ projectName = "MariPipe"
 
 # ------------------------------------------------------------------------------
 def archiveAsset():
-	currentProject = 
-	saveFileName =
-	backupFile =
-	newFile = mari.projects.archive("currentProject", "saveFile")
-	if newFile == backupFile.... POOOOOOOOOOOoooooop...
-	if not os.path.exists(newFile): 
-		os.makedirs(newFile)
+	print "Andrew's archive"
+	# currentProject = 
+	# saveFileName =
+	# backupFile =
+	# newFile = mari.projects.archive("currentProject", "saveFile")
+	# if newFile == backupFile.... POOOOOOOOOOOoooooop...
+	# if not os.path.exists(newFile): 
+	# 	os.makedirs(newFile)
 
 # ------------------------------------------------------------------------------
 archiveAsset()
