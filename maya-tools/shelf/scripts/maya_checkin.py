@@ -111,8 +111,6 @@ def checkin():
                 cmds.file(force=True, new=True) #open new file
                 dest = amu.checkin(toCheckin) #checkin
 		toInstall |= (dest in specialInstallFiles)
-		print 'my dest ========================= '+dest
-		print specialInstallFiles[0]
                 srcFile = amu.getAvailableInstallFiles(dest)[0]
                 if toInstall:
                     amu.install(dest, srcFile)

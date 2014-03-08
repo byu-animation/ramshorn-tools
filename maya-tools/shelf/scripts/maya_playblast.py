@@ -46,7 +46,7 @@ def simpleBlast(name, startFrame, endFrame):
     print soundfile
 
     mc.playblast(st=startFrame, et=endFrame, sound=soundfile, fmt="qt", compression="jpeg", qlt=100, forceOverwrite=True, filename=name,
-                 width=960, height=540, offScreen=True, percent=100, v=False)
+                 width=1280, height=692, offScreen=True, percent=100, v=False)
 
     mel.eval("lookThroughModelPanel "+currentCamera+" "+currentPanel)
     mc.modelEditor(currentPanel, e=True, nc=panelSwitch[0])
