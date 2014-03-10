@@ -15,6 +15,8 @@ import PythonQt.QtGui as gui
 #import MP_WorkingCode_saveAll
 #import MP_WorkingCode_turnTableRender
 
+MARI_DEFAULT_GEOMETRY_PATH = os.environ['MARI_DEFAULT_GEOMETRY_PATH']
+
 # ------------------------------------------------------------------------------
 def DSPAssetInfo():
 	printInfoList = mari.projects.list()
@@ -40,9 +42,13 @@ connect(createProjectPB.clicked, projectCreate)
 # layout.addWidget(updateOBJPB)
 #connect(updateOBJPB.clicked, OBJUpdate)
 
-ExportMapsPB = gui.QPushButton("Export All Maps")
-layout.addWidget(ExportMapsPB)
-connect(ExportMapsPB.clicked, exportMaps)
+ExportSelMapPB = gui.QPushButton("Export Selected Map")
+layout.addWidget(ExportSelMapPB)
+connect(ExportSelMapPB.clicked, exportSelectedMaps)
+
+ExportAllMapsPB = gui.QPushButton("Export All Maps")
+layout.addWidget(ExportAllMapsPB)
+connect(ExportAllMapsPB.clicked, exportAllMaps)
 
 # archiveAssetPB = gui.QPushButton("Archive Asset")
 # layout.addWidget(archiveAssetPB)
