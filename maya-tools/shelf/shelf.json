@@ -26,7 +26,7 @@
             "python_file":"maya_rollback.py"
         },
         {
-            "icon":"maya_issue_submit",
+            "icon":"bug.xpm",
             "annotation":"Open a webpage with a form to submit issues regarding pipeline and tools",
             "python_file":"maya_issue_submit.py"
         },

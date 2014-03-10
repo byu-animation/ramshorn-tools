@@ -15,6 +15,8 @@ import PythonQt.QtGui as gui
 #import MP_WorkingCode_saveAll
 #import MP_WorkingCode_turnTableRender
 
+MARI_DEFAULT_GEOMETRY_PATH = os.environ['MARI_DEFAULT_GEOMETRY_PATH']
+
 # ------------------------------------------------------------------------------
 def DSPAssetInfo():
 	printInfoList = mari.projects.list()
@@ -24,7 +26,7 @@ def DSPAssetInfo():
 # ------------------------------------------------------------------------------
 mainPal = mari.palettes.create("BYU Mari Tools")
 widget = gui.QWidget()
-widget.resize(225, 275)
+widget.resize(150, 275)
 mainPal.setBodyWidget(widget)
 layout = gui.QVBoxLayout()
 widget.setLayout(layout)
@@ -36,30 +38,34 @@ createProjectPB = gui.QPushButton("Create Project")
 layout.addWidget(createProjectPB)
 connect(createProjectPB.clicked, projectCreate)
 
-updateOBJPB = gui.QPushButton("Update OBJs")
-layout.addWidget(updateOBJPB)
+# updateOBJPB = gui.QPushButton("Update OBJs")
+# layout.addWidget(updateOBJPB)
 #connect(updateOBJPB.clicked, OBJUpdate)
 
-ExportMapsPB = gui.QPushButton("Export All Maps")
-layout.addWidget(ExportMapsPB)
-#connect(ExportMapsPB.clicked, exportMaps)
+ExportSelMapPB = gui.QPushButton("Export Selected Map")
+layout.addWidget(ExportSelMapPB)
+connect(ExportSelMapPB.clicked, exportSelectedMaps)
 
-archiveAssetPB = gui.QPushButton("Archive Asset")
-layout.addWidget(archiveAssetPB)
+ExportAllMapsPB = gui.QPushButton("Export All Maps")
+layout.addWidget(ExportAllMapsPB)
+connect(ExportAllMapsPB.clicked, exportAllMaps)
+
+# archiveAssetPB = gui.QPushButton("Archive Asset")
+# layout.addWidget(archiveAssetPB)
 #connect(archiveAssetPB.clicked, archiveAsset)
 
 AssetInfoPB = gui.QPushButton("Display Asset Info")
 layout.addWidget(AssetInfoPB)
 connect(AssetInfoPB.clicked, DSPAssetInfo)
 
-turnTablePB = gui.QPushButton("Turntable Render")
-layout.addWidget(turnTablePB)
+# turnTablePB = gui.QPushButton("Turntable Render")
+# layout.addWidget(turnTablePB)
 
 #VersionSlider
 #connect(turnTablePB.clicked, turnTableRender)
 
-savePB = gui.QPushButton("Save and Close")
-layout.addWidget(savePB)
+# savePB = gui.QPushButton("Save and Close")
+# layout.addWidget(savePB)
 #connect(savePB.clicked, saveAll)
 
 # ------------------------------------------------------------------------------

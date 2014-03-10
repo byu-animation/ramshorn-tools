@@ -12,14 +12,14 @@ PERMISSIONS = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IWGRP | stat.S
 
 def clobberPermissions(path):
     '''Force proper permissions on the file pointed to by path'''
-    try:
-        os.chown(path, -1, GID)
-    except Exception as e:
-        sys.stderr.write('Error occured while changing group: ' + str(e) + '\n')
-    else:
-        sys.stderr.write('Group forcefully changed: ' + str(path) + '\n')
-    finally:
-        pass
+    # try:
+    #     os.chown(path, -1, GID)
+    # except Exception as e:
+    #     sys.stderr.write('Error occured while changing group: ' + str(e) + '\n')
+    # else:
+    #     sys.stderr.write('Group forcefully changed: ' + str(path) + '\n')
+    # finally:
+    #     pass
 
     try:
         os.chmod(path, PERMISSIONS)

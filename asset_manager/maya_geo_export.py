@@ -6,6 +6,7 @@ import os
 import subprocess as sp
 import sys
 import shutil
+from pymel.core import *
 
 from ui_tools import ui, messageSeverity, fileMode
 
@@ -39,9 +40,10 @@ def objExport(selected, path):
 	for geo in selected:
 		mc.select(geo, r=True)
 		geoName = geo + ".obj"
-		geoName = geoName.replace("Shape", "")
-		geoName = geoName.replace(":", "_")
-		geoName = geoName.replace("|", "_")
+		# geoName = geoName.replace("Shape", "")
+		# geoName = geoName.replace(":", "_")
+		# geoName = geoName.replace("|", "_")
+		geoName = formatFilename(geoName)
 		filename = os.path.join(path, geoName)
 		print("Exporting \'" + filename + "\'...")
 		mc.file(filename, force=True, options=optionsStr, type=exportType, preserveReferences=True, exportSelected=True)
@@ -50,6 +52,27 @@ def objExport(selected, path):
 		
 	return objfiles
 	
+def abcExport(selected, path):
+	# Create directory if it doesn't exist
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+	abcfiles = []
+	
+	loadPlugin("AbcExport")
+	for geo in selected:
+		chop = geo.rfind('|')
+		parent_geo = geo[:chop]
+		abcFile = geo[(chop+1):] + ".abc"
+		abcFile = formatFilename(abcFile)
+		abcFilePath = os.path.join(path, abcFile)
+		print abcFilePath
+		command = "AbcExport -j \"-frameRange 1 1 -root "+parent_geo+" -file "+abcFilePath+"\";"
+		print command
+		Mel.eval(command)
+		abcfiles.append(abcFilePath)
+	
+	return abcfiles
 	
 def bjsonExport(objfiles, path):    
 	'''
@@ -83,6 +106,11 @@ def bjsonExport(objfiles, path):
 	
 	return bjsonfiles
 
+def formatFilename(filename):
+	filename = filename.replace("Shape", "")
+	filename = filename.replace(":", "_")
+	filename = filename.replace("|", "_")
+	return filename
 
 def checkFiles(files):
 	'''
@@ -96,6 +124,7 @@ def checkFiles(files):
 	missingFiles = []
 	
 	for filename in files:
+		print "CHECKING********** " + filename
 		if not os.path.exists(filename):
 			missingFiles.append(filename)
 	
@@ -147,13 +176,17 @@ def installGeometry(path=''):
 
 	srcOBJ = os.path.join(path, 'geo/objFiles')
 	srcBJSON = os.path.join(path, 'geo/bjsonFiles')
+	srcABC = os.path.join(path, 'geo/abcFiles')
 	destOBJ = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/objFiles')
 	destBJSON = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/bjsonFiles')
+	destABC = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/')
 
 	if os.path.exists(destOBJ):
 		shutil.rmtree(destOBJ)
 	if os.path.exists(destBJSON):
 		shutil.rmtree(destBJSON)
+	# if os.path.exists(destABC):
+	# 	shutil.rmtree(destABC)
 
 	print 'Copying '+srcOBJ+' to '+destOBJ
 	try:
@@ -164,6 +197,14 @@ def installGeometry(path=''):
 	print 'Copying '+srcBJSON+' to '+destBJSON
 	try:
 		shutil.copytree(src=srcBJSON, dst=destBJSON)
+	except Exception as e:
+		print e
+
+	#treat alembic special so we don't mess up concurrent houdini reading . . .
+	print 'Copying '+srcABC+' to '+destABC
+	try:
+		os.system('cp -rf '+srcABC+' '+destABC)
+		# shutil.copytree(src=srcABC, dst=destABC)
 	except Exception as e:
 		print e
 
@@ -197,15 +238,19 @@ def generateGeometry(path=''):
 	# Define output paths
 	OBJPATH = os.path.join(path, "geo/objFiles")
 	BJSONPATH = os.path.join(path, "geo/bjsonFiles")
+	ABCPATH = os.path.join(path, "geo/abcFiles")
 	
 	# Make initial selection
 	selection = mc.ls(geometry=True, visible=True)
+	selection_long = mc.ls(geometry=True, visible=True, long=True)
 
 	# Delete old obj and bjson folders
 	if os.path.exists(OBJPATH):
 		shutil.rmtree(OBJPATH)
 	if os.path.exists(BJSONPATH):
 		shutil.rmtree(BJSONPATH)
+	if os.path.exists(ABCPATH):
+		shutil.rmtree(ABCPATH)
 	
 	# Export meshes to .obj files
 	objs = objExport(selection, OBJPATH)
@@ -219,6 +264,12 @@ def generateGeometry(path=''):
 	
 	# Check to see if all .bjson files were created
 	if not len(checkFiles(bjsons)) == 0:
+		return False
+
+	# Export static alembic files
+	abcs = abcExport(selection_long, ABCPATH)
+	# Check to see if all .abc files were created
+	if not len(checkFiles(abcs)) == 0:
 		return False
 		
 	return True

@@ -5,6 +5,7 @@ import maya.cmds as cmd
 import maya.OpenMayaUI as omu
 import sip
 import os, glob
+import shutil
 import utilities as amu
 
 CHECKOUT_WINDOW_WIDTH = 340
@@ -170,8 +171,17 @@ class CheckoutDialog(QDialog):
 				amu.createNewPrevisFolders(self.context.folder, text)
 			else:
 				amu.createNewShotFolders(self.context.folder, text)
+			self.copy_template_animation(text)
 			self.context.add_item(text)
 			self.refresh()
+		return
+
+	def copy_template_animation(self, shot_name):
+		template = os.path.join(os.environ['SHOTS_DIR'], 'static/animation/stable/static_animation_stable.mb')
+		if(os.path.exists(template)):
+			dest = os.path.join(self.context.folder, shot_name, 'animation/src/v000/'+shot_name+'_animation.mb')
+			shutil.copyfile(template, dest)
+			print 'copied '+template+' to '+dest
 		return
 	
 	def get_filename(self, parentdir):
@@ -257,6 +267,7 @@ class CheckoutDialog(QDialog):
 			# create new file
 			cmd.file(force=True, new=True)
 			cmd.file(rename=toOpen)
+			cmd.viewClipPlane('perspShape', ncp=0.01)
 			cmd.file(save=True, force=True)
 		self.close_dialog()
 	

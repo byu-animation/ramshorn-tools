@@ -126,6 +126,9 @@ def createNewPrevisFolders(parent, name):
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'abc')
 	addProjectFolder(os.path.join(new_dir, 'animation_cache'), 'geo_sequences')
 	addProjectFolder(new_dir, 'playblasts')
+	addProjectFolder(new_dir, 'renders')
+	addProjectFolder(os.path.join(new_dir, 'renders'), 'lighting')
+	addProjectFolder(os.path.join(new_dir, 'renders'), 'compositing')
 
 def isEmptyFolder(dirPath):
 	return not bool(glob.glob(os.path.join(dirPath, '*')))

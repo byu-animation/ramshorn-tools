@@ -36,14 +36,14 @@ def mariProjectCreate():
 	if os.path.exists(obj_name):
 		#What default layers are created
 		mari.projects.create("projectName", obj_name,
-			[mari.ChannelInfo('DIFF', 2048, 2048, 16, False, mari.Color(0, 0, 0), mari.setFileTemplate($ENTITY_$CHANNEL_$UDIM.png),mari.setPath(InsertPathHere),),
-			mari.ChannelInfo('SPEC', 2048, 2048, 16, False, mari.Color(0.5, 0.5, 0.5), mari.setFileTemplate($ENTITY_$CHANNEL_$UDIM.png)),
-			mari.ChannelInfo('DSP', 2048, 2048, 16, True, mari.Color(0.5, 0.5, 0.5), mari.setFileTemplate($ENTITY_$CHANNEL_$UDIM.png))])
+			[mari.ChannelInfo('DIFF', 2048, 2048, 16, False, mari.Color(0, 0, 0), mari.setFileTemplate("$ENTITY_$CHANNEL_$UDIM.png"),mari.setPath("InsertPathHere"),),
+			mari.ChannelInfo('SPEC', 2048, 2048, 16, False, mari.Color(0.5, 0.5, 0.5), mari.setFileTemplate("$ENTITY_$CHANNEL_$UDIM.png")),
+			mari.ChannelInfo('DSP', 2048, 2048, 16, True, mari.Color(0.5, 0.5, 0.5), mari.setFileTemplate("$ENTITY_$CHANNEL_$UDIM.png"))])
 
 # ------------------------------------------------------------------------------
 def buildBYUSelf():
 	#Menu Shelf Creation Set
-	mari.actions.create("TestAction", "mari.utils.message("Test")")
+	mari.actions.create("TestAction", "mari.utils.message('Test')")
 	mari.menus.addAction(action,"MariWindow/BYU Tools")
 	action.setShortcut("Ctrl + H")
 	#SubDirs that need to be created... Projectors, Project Maps(Bypass texture Tool!)?, TurnTabels, Refrence

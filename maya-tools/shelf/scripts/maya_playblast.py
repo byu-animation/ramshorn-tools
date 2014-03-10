@@ -41,8 +41,12 @@ def simpleBlast(name, startFrame, endFrame):
     mc.modelEditor(currentPanel, e=True, strokes=1)
     mc.modelEditor(currentPanel, e=True, cameras=0)
 
-    mc.playblast(st=startFrame, et=endFrame, fmt="qt", compression="jpeg", qlt=100, forceOverwrite=True, filename=name,
-                 width=960, height=540, offScreen=True, percent=100, v=False)
+    playback_slider = mel.eval('$tmpVar=$gPlayBackSlider')
+    soundfile = mc.timeControl(playback_slider, q=True, sound=True)
+    print soundfile
+
+    mc.playblast(st=startFrame, et=endFrame, sound=soundfile, fmt="qt", compression="jpeg", qlt=100, forceOverwrite=True, filename=name,
+                 width=1280, height=692, offScreen=True, percent=100, v=False)
 
     mel.eval("lookThroughModelPanel "+currentCamera+" "+currentPanel)
     mc.modelEditor(currentPanel, e=True, nc=panelSwitch[0])

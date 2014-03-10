@@ -12,6 +12,7 @@ import new_asset_methods
 import checkin_asset_methods
 
 import utilities as amu #asset manager utilites
+import houdini_rollback as rb #rollback tool
 
 JOB=os.environ['JOB']
 USERNAME=os.environ['USER']
@@ -315,7 +316,6 @@ def rename(node = None):
     """Renames the selected node. EXACTLY ONE node may be selected, and it MUST be a digital asset.
         The node must already exist in the database.
     """
-    updateDB()
     if node != None:
         if not isDigitalAsset(node):
             hou.ui.displayMessage("Not a Digital Asset.")
@@ -366,7 +366,6 @@ def deleteAsset(node = None):
         The node must already exist in the database. It may not be already checked out in Houdini
         or in Maya.
     """
-    updateDB()
     if node != None:
         if not isDigitalAsset(node):
             hou.ui.displayMessage("Not a Digital Asset.", title='Non-Asset Node', severity=hou.severityType.Error)
@@ -422,7 +421,6 @@ def refresh(node = None):
 
     Everything else is probably either light linking data, or something else 
     that should always have a local override."""
-    updateDB()
     hou.hscript("otrefresh -r") # Refresh all definitions first
     
     if node == None or hasattr(node, "__len__"):
@@ -443,7 +441,6 @@ def refresh(node = None):
 def add(node = None):
     """Adds the selected node. EXACTLY ONE node may be selected, and it MUST be a digital asset.
         The node CAN NOT already exist in the database."""
-    updateDB()
     if node != None:
         if node.type().definition() is None:
             hou.ui.displayMessage("Not a Digital Asset.")
@@ -503,4 +500,14 @@ parameter and false otherwise.'''
 
 # make getNodeInfo an alias of getInfo
 getNodeInfo = getInfo
+
+def rollbackOTL(node): # Calling rollback method in separate module
+	rb.rollbackOTL(node)
+
+def rollbackShot(): # Rollback for the separate shots.
+	rb.rollbackShotFiles()
+
+
+
+
 

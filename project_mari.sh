@@ -3,20 +3,18 @@
 # Start Up Script for Mari in the pipeline, setting all the variables.
 # ------------------------------------------------------------------------------
 
-JOB=/groups/owned/PRODUCTION/assets/
-LOGNAME=Andrew
-USERNAME=rasmusa
+# source project environment
+DIR=`dirname $0`
+source ${DIR}/project_env.sh
 
 
 #export USER_SCRIPTS=${HOME}/ADRMariScripts/
-export MARI_SCRIPT_PATH=${HOME}/mariTools/
-export MARI_DEFAULT_GEOMETRY_PATH=${JOB}/MairPipeTest/mariFiles/OBJs/
-#export ICONS=/usr/local/Mari2.0v1/Media/Icons/
+export MARI_SCRIPT_PATH=${JOB}/ramshorn-tools/mari-tools/
+export MARI_DEFAULT_GEOMETRY_PATH=${JOB}/PRODUCTION/assets/
+export ICONS=/usr/local/Mari2.5v2/Media/Icons/
 #export MARI_DEFAULT_CACHE=/warthome/${USERNAME}
 
-# source project environment
-#DIR=`dirname $0`
-#source ${DIR}/project_env.sh
+
 
 #MARI_DEFAULT_GEOMETRY_PATH
 #MARI_DEFAULT_IMAGE_PATH
@@ -95,8 +93,8 @@ wacomTabSetUp
 
 
 # Starting Mari
-/usr/local/Mari2.0v1/mari
-
+echo "Starting Mari...";
+/usr/local/Mari2.5v2/mari
 
 #createJToolsMenu()
 

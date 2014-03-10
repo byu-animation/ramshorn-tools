@@ -65,7 +65,8 @@ def checkin():
         print 'filePath: '+filePath
         toCheckin = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(filePath)))
         print 'toCheckin: '+toCheckin
-        rig = isRigAsset()
+        toInstall = isRigAsset()
+	specialInstallFiles = [os.path.join(os.environ['SHOTS_DIR'], 'static/animation')]
         anim = isAnimationAsset()
         references = cmds.ls(references=True)
         loaded = []
@@ -109,8 +110,9 @@ def checkin():
                 saveFile()
                 cmds.file(force=True, new=True) #open new file
                 dest = amu.checkin(toCheckin) #checkin
+		toInstall |= (dest in specialInstallFiles)
                 srcFile = amu.getAvailableInstallFiles(dest)[0]
-                if rig:
+                if toInstall:
                     amu.install(dest, srcFile)
         else:
                 showFailDialog()
