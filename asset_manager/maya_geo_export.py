@@ -67,7 +67,7 @@ def abcExport(selected, path):
 		abcFile = formatFilename(abcFile)
 		abcFilePath = os.path.join(path, abcFile)
 		print abcFilePath
-		command = "AbcExport -j \"-frameRange 1 1 -root "+parent_geo+" -file "+abcFilePath+"\";"
+		command = "AbcExport -j \"-frameRange 1 1 -root "+parent_geo+" -nn -uv -file "+abcFilePath+"\";"
 		print command
 		Mel.eval(command)
 		abcfiles.append(abcFilePath)
