@@ -3,15 +3,14 @@
 # Start Up Script for Mari in the pipeline, setting all the variables.
 # ------------------------------------------------------------------------------
 
-# source project environment
-DIR=`dirname $0`
-source ${DIR}/project_env.sh
-
 
 #export USER_SCRIPTS=${HOME}/ADRMariScripts/
+export PROJECT_NAME=ramshorn
+export JOB=/groups/${PROJECT_NAME}
 export MARI_SCRIPT_PATH=${JOB}/ramshorn-tools/mari-tools/
 export MARI_DEFAULT_GEOMETRY_PATH=${JOB}/PRODUCTION/assets/
 export ICONS=/usr/local/Mari2.5v2/Media/Icons/
+export PATH=/opt/hfs13.0.343/bin:$PATH
 #export MARI_DEFAULT_CACHE=/warthome/${USERNAME}
 
 

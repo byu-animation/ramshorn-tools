@@ -1,0 +1,40 @@
+<Node>
+/* Orlando Esponda, 2013 Node to Merge Normal Maps. Apply it as adjustment layer in a stack for a specific layer (NOT in the channel as global adjustment layer) */
+
+  <ID>Normal Map Merge</ID>
+  <DefaultName>Normal Map Merge</DefaultName>
+  <Cost>0.005</Cost>
+  <CostDescription>Some calculations</CostDescription>
+  <Tags>
+    <Tag>_adjustment</Tag>
+  </Tags>
+    <Inputs>
+        <Input Name="Input"></Input>
+    </Inputs>
+    <Attributes>
+    </Attributes>
+  <Contexts>
+    <Context Type="NodeGraphView">
+        <Inputs>
+            <Input Name="Input"><Pos>0,-50</Pos></Input>
+        </Inputs>
+    </Context>
+    <Context Type="GLSL">
+        <Shader>
+            <Inputs>
+                <Input Name="Input"><Default>vec4(1,1,1,1)</Default></Input>
+            </Inputs>
+            <Body><![CDATA[
+    vec4 foreground = vec4(1.0, 1.0, #Input.b, #Input.a);
+    vec4 background = vec4(#Input.r, #Input.g, 0.5, #Input.a);
+
+    for (int i = 0; i != 3; ++i) {
+        Output[i] = foreground[i] * background[i];
+    }
+
+    Output.a = #Input.a;
+            ]]></Body>
+        </Shader>
+    </Context>
+  </Contexts>
+</Node>

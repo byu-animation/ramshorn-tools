@@ -1,0 +1,52 @@
+<Node>
+    <ID>Ward Isotropic</ID>
+    <Inputs>
+        <Input Name="SpecularColor" PrettyName="Specular Color" PreferredInput='1'></Input>
+        <Input Name="Specular" PrettyName="Specular Weight"></Input>
+        <Input Name="SpecularRoughness" PrettyName="Specular Roughness"></Input>
+        <Input Name="Normal"></Input>
+    </Inputs>
+    <Attributes>
+        <Attribute Name="SpecularRoughness" PrettyName="Specular Roughness" Type="double" Min="0.0" Max="1.0">0.5</Attribute>
+    </Attributes>
+    <Tags>
+        <Tag>_notcacheable</Tag>
+        <Tag>_specular</Tag>
+    </Tags>
+    <Contexts>
+        <Context Type="GLSL">
+            <Shader ShaderType='Fragment'>
+                <Inputs>
+                    <Input Name="SpecularColor"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="Specular"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="SpecularRoughness"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="Normal"><Default>vec4(0,0,1,1)</Default></Input>
+                </Inputs>
+                <Body><![CDATA[
+
+                vec3 V = normalize(-State.ViewVectorInEyeSpaceFromViewCamera);
+                vec3 N = #Normal.xyz;
+                vec3 Specular = vec3(0.0);
+                float SpecularRoughness = clamp(($SpecularRoughness*#SpecularRoughness.r), 0.001,0.999);
+
+                for(int i=0;i<4;i++)
+                {
+                    // Light Visibility
+                    float lightVisibility = mriLightVisibility( i, State.Position);
+
+                    // Light Direction
+                    vec3 L = normalize(u_MriLightSources[i].Position.xyz - State.FragmentPositionInEyeSpaceFromViewCamera);
+
+                    // Ward Isotropic Specular
+                    float SpecTerm = nb_wardIsotropic(N,V,L,SpecularRoughness);
+                    Specular += SpecTerm * u_MriLightSources[i].SpecularColor.rgb * lightVisibility;
+                }
+
+                Output.rgb = Specular * #Specular.r * #SpecularColor.rgb;
+                Output.a = #SpecularColor.a;
+
+                ]]></Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>

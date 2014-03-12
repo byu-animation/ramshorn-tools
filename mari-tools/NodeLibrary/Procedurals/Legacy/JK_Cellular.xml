@@ -1,0 +1,70 @@
+<Node>
+  <ID>JK_Cellular</ID>
+  <DefaultName>Cellular</DefaultName>
+  <Description>Basic Cellular Noise</Description>
+  <Cost>0.1</Cost>
+  <CostDescription>Calculations</CostDescription>
+  <Inputs>
+    <Input Name="Input"/>
+  </Inputs>
+  <Attributes>
+    <Attribute Name="Size" Group="" Type="double" Min="0" Max="1.0">0.5</Attribute>
+    <Attribute Name="Type" Group="" Type="stringlist">F1,F1,F2,F2-F1</Attribute>
+    <Attribute Name="Distance" PrettyName="Distance Method" Group="" Type="stringlist">Euclidian,Manhattan,Euclidian,Chebyshev,0.5</Attribute>
+    <Attribute Name="colorA" PrettyName="Color A" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)">(1,1,1,1)</Attribute>
+    <Attribute Name="colorB" PrettyName="Color B" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)">(0,0,0,1)</Attribute>
+    <Attribute Name="Seed" PrettyName="Seed" Type="double" Min="1" Max="100000" Logarithmic="1">1</Attribute> 
+    <Attribute Name="XOffset" PrettyName="X Offset" Group="Offsets" Type="double" Min="0" Max="100" Logarithmic="1">0</Attribute>
+    <Attribute Name="YOffset" PrettyName="Y Offset" Group="Offsets" Type="double" Min="0" Max="100" Logarithmic="1">0</Attribute>
+    <Attribute Name="ZOffset" PrettyName="Z Offset" Group="Offsets" Type="double" Min="0" Max="100" Logarithmic="1">0</Attribute>
+    <Attribute Name="XScale" PrettyName="X Scale" Group="Non-Uniform Scale" Type="double" Min="0" Max="100" Logarithmic="1">1</Attribute>
+    <Attribute Name="YScale" PrettyName="Y Scale" Group="Non-Uniform Scale" Type="double" Min="0" Max="100" Logarithmic="1">1</Attribute>
+    <Attribute Name="ZScale" PrettyName="Z Scale" Group="Non-Uniform Scale" Type="double" Min="0" Max="100" Logarithmic="1">1</Attribute>
+    <Attribute Name="rX" PrettyName="Rotate X" Group="Rotation" Type="double" Min="0" 	Max="360">0</Attribute>
+    <Attribute Name="rY" PrettyName="Rotate Y" Group="Rotation" Type="double" Min="0" 	Max="360">0</Attribute>
+    <Attribute Name="rZ" PrettyName="Rotate Z" Group="Rotation" Type="double" Min="0" 	Max="360">0</Attribute>
+
+
+
+</Attributes>
+    <Contexts>
+        <Context Type="NodeGraphView">
+            <Inputs>
+                <Input Name="Input"><Pos>0,-50</Pos></Input>
+            </Inputs>
+        </Context>
+        <Context Type="GLSL">
+            <Shader ShaderType='Fragment'>
+                <Inputs>
+                    <Input Name="Input"> <Default>State.Position</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader ShaderType='TessEvaluation'>
+                <Inputs>
+                    <Input Name="Input"> <Default>State.Position</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader>
+                <Body><![CDATA[
+
+    // compensate for scene size by applying eponential growth
+    float size_pow = (pow(10000.0,$Size*$Size)-1.0) + 0.0001;
+
+    // build the needed vector attributes for position transform, offset max growths exponentially
+    vec3 trans = (vec3($XOffset,$YOffset,$ZOffset)*size_pow) + vec3($Seed);
+    vec3 rotate = vec3($rX,$rY,$rZ);
+    vec3 scale = vec3($XScale,$YScale,$ZScale);
+            
+    // transform the position to translate,rotate,scale the position
+    vec3 P = positionTransform(State.Position,trans,rotate,scale);
+
+    
+    vec3 scaled_seed = P / size_pow;
+    float noise_val = cellular(scaled_seed, $Distance)[$Type];
+    Output = mix($colorB, $colorA, noise_val);
+                ]]></Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>
+
