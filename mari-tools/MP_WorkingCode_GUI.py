@@ -36,11 +36,7 @@ layout.addWidget(gui.QLabel("Welcome to the uber palette."))
 #ButtonCreation
 createProjectPB = gui.QPushButton("Create Project")
 layout.addWidget(createProjectPB)
-connect(createProjectPB.clicked, projectCreate)
-
-# updateOBJPB = gui.QPushButton("Update OBJs")
-# layout.addWidget(updateOBJPB)
-#connect(updateOBJPB.clicked, OBJUpdate)
+connect(createProjectPB.clicked, mariProjectCreate)
 
 ExportSelMapPB = gui.QPushButton("Export Selected Map")
 layout.addWidget(ExportSelMapPB)
@@ -50,19 +46,9 @@ ExportAllMapsPB = gui.QPushButton("Export All Maps")
 layout.addWidget(ExportAllMapsPB)
 connect(ExportAllMapsPB.clicked, exportAllMaps)
 
-# archiveAssetPB = gui.QPushButton("Archive Asset")
-# layout.addWidget(archiveAssetPB)
-#connect(archiveAssetPB.clicked, archiveAsset)
-
 AssetInfoPB = gui.QPushButton("Display Asset Info")
 layout.addWidget(AssetInfoPB)
 connect(AssetInfoPB.clicked, DSPAssetInfo)
-
-# turnTablePB = gui.QPushButton("Turntable Render")
-# layout.addWidget(turnTablePB)
-
-#VersionSlider
-#connect(turnTablePB.clicked, turnTableRender)
 
 # savePB = gui.QPushButton("Save and Close")
 # layout.addWidget(savePB)

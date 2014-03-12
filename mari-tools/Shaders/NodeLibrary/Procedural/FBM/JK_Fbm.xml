@@ -1,0 +1,110 @@
+<Node>
+    <ID>fBm+</ID>
+    <Category>Procedural/Custom/FBM/</Category>
+    <DefaultName>fbm</DefaultName>
+    <Description>Basic fractal brownian motion</Description>
+    <Cost>0.08</Cost>
+    <CostDescription>Texture reads</CostDescription>
+    <Inputs>
+        <Input Name="Input"/>
+    </Inputs>
+    <Attributes>
+        <!--===============================================================================================================-->
+        <Attribute Name="colorA" PrettyName="Color A" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)">(1,1,1,1)</Attribute>
+        <Attribute Name="colorB" PrettyName="Color B" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)">(0,0,0,1)</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="Size" Group="Size" Type="double" Min="0" Max="2" Description="The general feature size">0.5</Attribute>
+        <Attribute Name="octaves" Group="Size" Type="float" Min="0" Max="8" Description="Visual complexitity of noise">3</Attribute>
+        <Attribute Name="lacunarity" Group="Size" Type="double" Min="0" Max="8" Description="Frequency spacing between successive octaves">4</Attribute>
+        <Attribute Name="FOffset" PrettyName="Offset" Group="Size" Type="double" Min="0.0001" Max="1" Description="Frequency Offset">0.5</Attribute>
+        <Attribute Name="P" PrettyName="P" Group="Size" Type="double" Min="1" Max="100000" Logarithmic="1" Description="frequency">1</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="Amp" PrettyName="Amplitute" Group="Modifiers" Type="double" Min="0.0001" Max="1" Description="Scaling factor between successive octaves" >1</Attribute>
+        <Attribute Name="gain" Group="Modifiers" Type="double" Min="0" Max="1" Description="The Contrast of the Noise">1.0</Attribute>
+        <Attribute Name="Baseline" Group="Modifiers" Type="double" Min="0" Max="1" Description="After each Noise Routine the Noise gets reprocessed (noise*Baseline+Baseline) to a new Baseline,0 turns this behavior off" >0.5</Attribute>
+        <Attribute Name="Absolut" PrettyName="Absolute Values" Group="Modifiers" Type="bool" Min="false" Max="true" Description="By default positive and negative noise values will all be treated as positive making for a denser noise. This will remove any negative noise values">false</Attribute>
+        <Attribute Name="Invert" PrettyName="Invert" Group="Modifiers" Type="bool" Min="false" Max="true" Description="Inverts the Noise result before ColorA+B are applied" >false</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="Threshold" PrettyName="Threshold" Group="Threshold" Type="double" Min="0" Max="1" Description="Threshold of final result" >0.5</Attribute>
+        <Attribute Name="Clip" PrettyName="Soft Clip Result" Group="Threshold" Type="double" Min="0.001" Max="1" Description="extends the threshold box by a fixed value up and down">0.5</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="uv" PrettyName="UV Space" Group="Space" Type="bool" Min="false" Max="true" Description="Runs the noise 2d uv based, use offset/scale x/y and rotate z" >false</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="XScale" PrettyName="Scale X" Group="Transform Scale" Type="double" Min="0" Max="100" Logarithmic="1" >1</Attribute>
+        <Attribute Name="YScale" PrettyName="Scale Y" Group="Transform Scale" Type="double" Min="0" Max="100" Logarithmic="1" >1</Attribute>
+        <Attribute Name="ZScale" PrettyName="Scale Z" Group="Transform Scale" Type="double" Min="0" Max="100" Logarithmic="1" >1</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="rX" PrettyName="Rotate X" Group="Transform Rotate" Type="double" Min="0" Max="360" >0</Attribute>
+        <Attribute Name="rY" PrettyName="Rotate Y" Group="Transform Rotate" Type="double" Min="0" Max="360" >0</Attribute>
+        <Attribute Name="rZ" PrettyName="Rotate Z" Group="Transform Rotate" Type="double" Min="0" Max="360" >0</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="XOffset" PrettyName="Translate X" Group="Transform Translate" Type="double" Min="0" Max="100" Logarithmic="1" >0</Attribute>
+        <Attribute Name="YOffset" PrettyName="Translate Y" Group="Transform Translate" Type="double" Min="0" Max="100" Logarithmic="1" >0</Attribute>
+        <Attribute Name="ZOffset" PrettyName="Translate Z" Group="Transform Translate" Type="double" Min="0" Max="100" Logarithmic="1" >0</Attribute>
+        <!--===============================================================================================================-->
+    </Attributes>
+    <Contexts>
+        <Context Type="NodeGraphView">
+            <Inputs>
+                <Input Name="Input"><Pos>0,-50</Pos></Input>
+            </Inputs>
+        </Context>
+        <Context Type="GLSL">
+            <Shader ShaderType='Fragment'>
+                <Inputs>
+                    <Input Name="Input"> <Default>State.Position</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader ShaderType='TessEvaluation'>
+                <Inputs>
+                    <Input Name="Input"> <Default>State.Position</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader>
+                <Body><![CDATA[
+
+                // compensate for scene size by applying eponential growth
+                float size_pow = (pow(10000.0,$Size*$Size)-1.0) + 0.0001;
+
+                // 3d space surface position
+                // build the needed vector attributes for position transform, offset max growths exponentially
+                vec3 trans = (vec3($XOffset,$YOffset,$ZOffset)*size_pow) + vec3($P);
+                vec3 rotate = vec3($rX,$rY,$rZ);
+                vec3 scale = vec3($XScale,$YScale,$ZScale);
+
+                // transform the position to translate,rotate,scale the position
+                vec3 P = positionTransform(State.Position,trans,rotate,scale);
+
+                // 2d uv space surface position
+                // build the needed vector attributes for position transform, offset max growths exponentially
+                vec2 UVOffset = vec2($XOffset,$YOffset) + vec2($P);
+                vec2 UVScale = vec2($XScale,$YScale);
+
+                // transform the position to translate,rotate,scale the position
+                vec2 InputScaleUV = relUVTransform(State.UV,$rZ,UVOffset,UVScale,0.5,0.5)/ (size_pow);
+
+                // blend between 2d and 3d space position
+                P = mix(P,vec3(InputScaleUV,1.0),float($uv));
+
+                vec3 scaled_P = P / size_pow;
+                float noise_val = smoothfBm(scaled_P,$octaves,$lacunarity,$gain,$Amp,$FOffset);
+                noise_val = mix(noise_val,abs(noise_val),float($Absolut));
+                float Baseline = 1.0 - $Baseline;
+
+                if ($Baseline==0.0){noise_val = noise_val;}
+                else { noise_val = noise_val*Baseline + Baseline;}
+
+                float result = softThreshold($Threshold, $Clip, noise_val);
+
+                float _invertResult = float($Invert);
+
+                vec4 fractal = mix(mix($colorB,$colorA,result),mix($colorA,$colorB,result),_invertResult);
+
+                Output = fractal;
+
+                ]]></Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>
+

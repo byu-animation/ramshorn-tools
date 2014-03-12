@@ -1,0 +1,271 @@
+<Node>
+    <ID>Mia Material BRDF</ID>
+    <Inputs>
+        <Input Name="DiffuseColor" PrettyName="Diffuse Color" PreferredInput='1'></Input>
+        <Input Name="DiffuseWeight" PrettyName="Diffuse Weight"></Input>
+        <Input Name="DiffuseRoughness" PrettyName="Diffuse Roughness"></Input>
+        <Input Name="ReflectionColor" PrettyName="Reflection Color"></Input>
+        <Input Name="ReflectionWeight" PrettyName="Reflectivity"></Input>
+        <Input Name="ReflectionRoughness" PrettyName="Reflection Glossiness"></Input>
+        <Input Name="IOR" PrettyName="Index of Refraction"></Input>
+        <Input Name="RefractionColor" PrettyName="Refraction Color"></Input>
+        <Input Name="RefractionWeight" PrettyName="Transparency"></Input>
+        <Input Name="RefractionRoughness" PrettyName="Refraction Glossiness"></Input>
+        <Input Name="Anisotropy" PrettyName="Anisotropy"></Input>
+        <Input Name="AnisotropyRotation" PrettyName="Anisotropy Rotation"></Input>
+        <Input Name="AmbientOcclusion" PrettyName="Ambient Occlusion"></Input>
+        <Input Name="Normal" />
+        <Input Name="Vector" />
+    </Inputs>
+    <Attributes>
+        <Attribute Name="DiffuseWeight" PrettyName="Diffuse Weight" Group="Diffuse" Type="double" Min="0.0" Max="1.0">0.5</Attribute>
+        <Attribute Name="DiffuseRoughness" PrettyName="Diffuse Roughness" Group="Diffuse" Type="double" Min="0.0" Max="1.0">0.0</Attribute>
+        <Attribute Name="ReflectionWeight" PrettyName="Reflectivity" Group="Reflection" Type="double" Min="0.0" Max="1.0">1.0</Attribute>
+        <Attribute Name="ReflectionRoughness" PrettyName="Reflection Glossiness" Group="Reflection" Type="double" Min="0.15" Max="1.0">0.6</Attribute>
+        <Attribute Name="HighlightsOnly" PrettyName="Highlights Only" Group="Reflection" Type="bool">false</Attribute>
+        <Attribute Name="Metal" PrettyName="Metal Material" Group="Reflection" Type="bool">false</Attribute>
+        <Attribute Name="IOR" PrettyName="Index of Refraction" Group="Refraction" Type="double" Min="0.001" Max="25.0">1.4</Attribute>
+        <Attribute Name="RefractionWeight" PrettyName="Transparency" Group="Refraction" Type="double" Min="0.0" Max="1.0">0.0</Attribute>
+        <Attribute Name="RefractionRoughness" PrettyName="Refraction Glossiness" Group="Refraction" Type="double" Min="0.0" Max="1.0">1.0</Attribute>
+        <Attribute Name="ThinWalled" PrettyName="Thin Walled" Group="Refraction" Type="bool">false</Attribute>
+        <Attribute Name="Anisotropy" PrettyName="Anisotropy" Group="Anisotropy" Type="double" Min="0.1" Max="10.0">1.0</Attribute>
+        <Attribute Name="AnisotropyRotation" PrettyName="Anisotropy Rotation" Group="Anisotropy" Type="double" Min="0.0" Max="1.0">0.0</Attribute>
+        <Attribute Name="AnisotropyChannel" PrettyName="Anisotropy Channel" Group="Anisotropy" Type="stringlist">-1,-1,-2</Attribute>
+        <Attribute Name="UseFresnel" PrettyName="Use Fresnel Reflection" Group="BRDF" Type="bool">false</Attribute>
+        <Attribute Name="BRDF_0" PrettyName="0 Degree Reflection" Group="BRDF" Type="double" Min="0.0" Max="1.0">0.2</Attribute>
+        <Attribute Name="BRDF_90" PrettyName="90 Degree Reflection" Group="BRDF" Type="double" Min="0.0" Max="1.0">1.0</Attribute>
+        <Attribute Name="BRDF_Curve" PrettyName="BRDF Curve" Group="BRDF" Type="double" Min="0.0" Max="20.0">5.0</Attribute>
+        <Attribute Name="Ambient" PrettyName="Ambient" Group="Ambient Occlusion" Type="double" Min="0.0" Max="1.0">0.0</Attribute>
+        <Attribute Name="AmbientOcclusion" PrettyName="Ambient Occlusion" Group="Ambient Occlusion" Type="double" Min="0.0" Max="2.0">0.0</Attribute>
+        <Attribute Name="EnvironmentMap" PrettyName="Environment Map" Group="Environment" Type="image"></Attribute>
+        <Attribute Name="SpecularBalance" PrettyName="Specular Balance" Group="Advanced" Type="double" Min="0.0" Max="1.0">1.0</Attribute>
+        <Attribute Name="AdditionalColor" PrettyName="AdditionalColor" Group="Advanced" Type="color">0.0,0.0,0.0,1.0</Attribute>
+    </Attributes>
+    <Tags>
+        <Tag>_notcacheable</Tag>
+        <Tag>_standalone</Tag>
+    </Tags>
+        <Contexts>
+            <Context Type="NodeGraphView">
+                <Inputs>
+                    <Input Name="DiffuseColor"><Pos>0,-50</Pos></Input>
+                    <Input Name="Normal"><Pos>30,-50</Pos></Input>
+                    <Input Name="Vector"><Pos>-30,-50</Pos></Input>
+                </Inputs>
+            </Context>
+        <Context Type="GLSL">
+            <Shader ShaderType='Fragment'>
+                <Inputs>
+                    <Input Name="DiffuseColor"><Default>vec4(0,0,0,0)</Default></Input>
+                    <Input Name="DiffuseWeight"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="DiffuseRoughness"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="ReflectionColor"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="ReflectionWeight"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="ReflectionRoughness"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="IOR"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="RefractionColor"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="RefractionWeight"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="RefractionRoughness"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="Anisotropy"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="AnisotropyRotation"><Default>vec4(1,1,1,1)</Default></Input>
+                    <Input Name="AmbientOcclusion"><Default>vec4(vec3(1.0-State.AmbientOcclusion),1.0)</Default></Input>
+                    <Input Name="Normal"><Default>vec4(0,0,1,1)</Default></Input>
+                    <Input Name="Vector"><Default>vec4(State.TangentInEyeSpaceFromProjectionCamera.xyz,1)</Default></Input>
+                </Inputs>
+                <Body><![CDATA[
+
+                // Architectural Material with Equirectangular Environment HDR
+                // The Architectural shader is based on the 3Delight mia_material RSL code.
+                // The code was found on GitHub here and modified for use inside Mari.
+                // Original credit goes to Master Zap and Nvidia Mental Images for the mia_material_x
+                // Mari 2.5v2 Implementation by Nicholas Breslow (http://nbreslow.com)
+                // This program is free software: GNU General Public License v3.
+                // See license distributed with file for more information.
+
+                float PI = 3.14159265;
+                vec3 V = normalize(-State.ViewVectorInEyeSpaceFromViewCamera);
+                vec3 I = normalize(State.ViewVectorInEyeSpaceFromViewCamera);
+                vec3 N = normalize(#Normal.xyz);
+                //vec3 Nf = faceforward(N, I, N);
+
+                vec3 Diffuse = vec3(0.0);
+                float DiffuseScale = $DiffuseWeight * #DiffuseWeight.r;
+                float DiffuseRoughnessScale = clamp($DiffuseRoughness*#DiffuseRoughness.r, 0.001,0.999);
+
+                vec3 AO = vec3(1.0 - $AmbientOcclusion * vec3(1.0-#AmbientOcclusion.rgb));
+
+                vec3 Specular = vec3(0.0);
+                float AnisotropyScale = $Anisotropy*#Anisotropy.r;
+
+                float ReflectionScale = $ReflectionWeight * #ReflectionWeight.r;
+                float ReflectionRoughnessScale = clamp($ReflectionRoughness*#ReflectionRoughness.r, 0.001,0.999);
+
+                float RefractionScale = $RefractionWeight * #RefractionWeight.r;
+                float RefractionRoughnessScale = clamp($RefractionRoughness*#RefractionRoughness.r, 0.001,0.999);
+
+                vec3 AdditionalColor = $AdditionalColor.rgb * (1.0/2.2); // Gamma corrected
+
+                // Useful Functions
+                float IdotN = dot(I,N);
+                float VdotN = dot(V,N);
+                // Causes white sparks on edges. Disabling for now.
+                //if( VdotN <= 0.0) { N = -N; VdotN = 1.0 - VdotN; }
+
+                // Fresnel
+                float IOR = #IOR.r * $IOR;
+                float Eta = (IdotN < 0.0) ? 1.0/IOR : IOR;
+                float F0 = (1.0-Eta)/(1.0+Eta);
+                F0 *= F0;
+                float Fresnel = F0 + (1.0-F0) * pow(1.0 - VdotN, 5.0);
+                float BRDF = mix($BRDF_0,$BRDF_90,pow(1.0-abs(VdotN),$BRDF_Curve));
+
+                // Weights
+                ReflectionScale = ($UseFresnel == true) ? ReflectionScale * Fresnel : ReflectionScale * BRDF;
+                vec3 ReflectionColorScaled = #ReflectionColor.rgb * ReflectionScale;
+
+                if ($Metal == true)
+                {
+                    DiffuseScale *= 1.0 - nb_luminance(#ReflectionColor.rgb) * ReflectionScale;
+                    DiffuseScale = max(DiffuseScale, 0.0);
+                    ReflectionColorScaled *= #DiffuseColor.rgb;
+                }
+
+                // Energy Conservation
+                float DiffuseScaleEC = DiffuseScale
+                                     * (1.0-min(nb_luminance(#RefractionColor.rgb)*RefractionScale,1.0))
+                                     * (1.0-min(nb_luminance(ReflectionColorScaled),1.0));
+                float RefractionScaleEC = RefractionScale
+                                     * (1.0-min(nb_luminance(ReflectionColorScaled),1.0));
+
+                // Weights Cont.
+                vec3 RefractionColorScaled = #RefractionColor.rgb * RefractionScaleEC * (1.0 - Fresnel);
+                vec3 DiffuseColorScaled = #DiffuseColor.rgb * DiffuseScaleEC;
+
+                // Reflection Roughness
+                float ReflectionRoughness_u = pow(2.0, 8.0 * ReflectionRoughnessScale);
+                float ReflectionRoughness_v = ReflectionRoughness_u * max(AnisotropyScale, 0.001);
+
+                if (ReflectionRoughness_u >= 80.0) ReflectionRoughness_u = 80.0 + sqrt(ReflectionRoughness_u - 80.0);
+                if (ReflectionRoughness_v >= 80.0) ReflectionRoughness_v = 80.0 + sqrt(ReflectionRoughness_v - 80.0);
+
+                // Oren & Nayar Diffuse Setup
+                // Surface roughness coefficients
+                float DiffuseRoughnessScale2 = DiffuseRoughnessScale * DiffuseRoughnessScale;
+                float A = 1.0-0.5 * DiffuseRoughnessScale2 / (DiffuseRoughnessScale2+0.33);
+                float B = 0.45 * DiffuseRoughnessScale2 / (DiffuseRoughnessScale2+0.09);
+                // Precomputed quantities
+                float VangleN = acos(VdotN); // Angle between V and N
+                vec3 VperpN = normalize(V-N*(VdotN)); // Part of V perpendicular to N
+
+                // Ambient Setup
+                vec3 Ambient = ($Ambient * DiffuseColorScaled) * AO; // Ambient * AO
+
+                // Master Zap's Ward Specular Setup
+                // Three specular higlihgts of diminushing roughness but increasing brightness
+                float HighlightCoefs[3] = float[3](0.5, 1.0, 1.5);
+                // Metal materials inherit diffuse color
+                vec3 SpecularColorScaled = ($Metal == true) ? #DiffuseColor.rgb * ReflectionScale : ReflectionColorScaled;
+                // Advanced control for Specular Balance
+                SpecularColorScaled *= $SpecularBalance;
+                // Anisotropy
+                vec3 T_dir; // Tangent
+                vec3 B_dir; // Bitangent
+                float AnisotropyRotationScale = #AnisotropyRotation.r;
+                AnisotropyRotationScale = (AnisotropyRotationScale != 1.0) ? (1.0 - $AnisotropyRotation) * #AnisotropyRotation.r : $AnisotropyRotation;
+                float Angle = 2.0 * PI * AnisotropyRotationScale;
+
+                if ($AnisotropyChannel == 0) // -1: the base rotation follows the local object coordinate system.
+                {
+                    vec3 U_dir = vec3(1,0,0);
+                    vec3 V_dir = vec3(0,1,0);
+                    float cos_Angle = cos(Angle);
+                    float sin_Angle = sin(Angle);
+                    U_dir = cos_Angle * U_dir + sin_Angle * V_dir;
+                    V_dir = -sin_Angle * U_dir + cos_Angle * V_dir;
+                    T_dir = normalize(cross(N,U_dir));
+                    B_dir = normalize(cross(N,T_dir));
+                }
+                if ($AnisotropyChannel == 1) // -2: the base rotation follows the bump basis vectors
+                {
+                    vec3 U_dir = #Vector.xyz;
+                    vec3 V_dir = State.BitangentInEyeSpaceFromViewCamera;
+                    float cos_Angle = cos(Angle);
+                    float sin_Angle = sin(Angle);
+                    U_dir = cos_Angle * U_dir + sin_Angle * V_dir;
+                    V_dir = -sin_Angle * U_dir + cos_Angle * V_dir;
+                    T_dir = normalize(U_dir);
+                    B_dir = normalize(cross(N,T_dir));
+                }
+
+                for(int i=0;i<4;i++)
+                {
+                    // Lights
+                    float lightVisibility = mriLightVisibility(i, State.Position); // Visibility
+                    vec3 L = normalize(u_MriLightSources[i].Position.xyz - State.FragmentPositionInEyeSpaceFromViewCamera); // Direction
+
+                    // Useful Functions
+                    vec3 H = normalize(L+V); // Half-Vector
+                    float HdotN2 = min(nb_sq(dot(H,N)), 1.0);
+                    float LdotN = max(dot(L,N),0.0);
+
+                    // Oren & Nayar Diffuse
+                    float phi_Diffuse = dot(VperpN,normalize(L-N*LdotN));
+                    float LangleN = acos(LdotN);
+                    float Alpha = max(LangleN, VangleN);
+                    float Beta = min(LangleN, VangleN);
+                    Diffuse += LdotN * (A+B * max(phi_Diffuse,0.0) * sin(Alpha) * tan(Beta)) * u_MriLightSources[i].DiffuseColor.rgb * lightVisibility;
+
+                    // Master Zap's Ward Specular
+                    if(VdotN*LdotN>0.0)
+                    {
+                        if(HdotN2>0.0)
+                        {
+                            float k1_div = 1.0/(sqrt(VdotN * LdotN) * 4.0 * PI);
+                            float ssLdotN = smoothstep(0.0,0.25,LdotN);
+                            float RoughnessCoef = 1.0;
+
+                            for(int r=0;r<3;r++)
+                            {
+                                float k1 = (ReflectionRoughness_u * ReflectionRoughness_v * nb_sq(RoughnessCoef)) * k1_div;
+                                float k2 = nb_sq(dot(H,T_dir) * ReflectionRoughness_u * RoughnessCoef)
+                                         + nb_sq(dot(H,B_dir) * ReflectionRoughness_v * RoughnessCoef);
+                                float c = k1 * exp(-k2 / HdotN2) * LdotN * ssLdotN;
+                                Specular += c * HighlightCoefs[r] * u_MriLightSources[i].SpecularColor.rgb * lightVisibility;
+                                RoughnessCoef *= 0.5;
+                            }
+                        }
+                    }
+                }
+
+                // Reflection
+                vec3 ReflectDir_CamSpace = reflect(I,N);
+                vec4 ReflectDir_WorldSpace = vec4(ReflectDir_CamSpace, 0.0) * u_MriViewMatrix;
+                float ReflectYaw = .5 - atan(ReflectDir_WorldSpace.z, -ReflectDir_WorldSpace.x) / (2.0 * PI);
+                float ReflectPitch = .5 - asin(ReflectDir_WorldSpace.y) / PI;
+                float ReflectionTraceBias = 1.0/max(nb_sq(ReflectionRoughnessScale), 0.15);
+                vec3 ReflectionTrace = textureLod($EnvironmentMap, vec2(ReflectYaw,ReflectPitch), ReflectionTraceBias).rgb;
+                float ReflectionColorScaledValue = ReflectionColorScaled.r + ReflectionColorScaled.g + ReflectionColorScaled.b;
+                vec3 Reflection = (ReflectionColorScaledValue != 0.0 && $HighlightsOnly==false) ? ReflectionTrace * ReflectionColorScaled : vec3(0.0);
+
+                // Refraction
+                vec3 RefractDir_CamSpace = refract(I,N,$ThinWalled == true ? 1.0 : Eta);
+                vec4 RefractDir_WorldSpace = vec4(RefractDir_CamSpace, 0.0) * u_MriViewMatrix;
+                float RefractYaw = .5 - atan(RefractDir_WorldSpace.z, -RefractDir_WorldSpace.x) / (2.0 * PI);
+                float RefractPitch = .5 - asin(RefractDir_WorldSpace.y) / PI;
+                float RefractionTraceBias = 1.0/nb_sq(RefractionRoughnessScale);
+                vec3 RefractionTrace = textureLod($EnvironmentMap, vec2(RefractYaw, RefractPitch), RefractionTraceBias).rgb;
+                vec3 Refraction = RefractionTrace * RefractionColorScaled;
+
+                // 0 - Flat  - Diffuse
+                // 1 - Basic - Diffuse + Ambient
+                // 2 - Full  - Diffuse + Ambient + Specular + Reflection + Refraction
+
+                Output.rgb  = u_MriLightingMode==0 ? #DiffuseColor.rgb : (Diffuse*DiffuseColorScaled) + Ambient;
+                Output.rgb += u_MriLightingMode==2 ? Reflection + (Specular*SpecularColorScaled) + Refraction + AdditionalColor : vec3(0.0);
+                Output.a = #DiffuseColor.a;
+
+                ]]></Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>

@@ -1,0 +1,207 @@
+<Node>
+  <ID>JK_Spotify</ID>
+  <DefaultName>Spotify</DefaultName>
+  <Description>Multifractal with custom octave weight</Description>
+  <Cost>0.2</Cost>
+  <CostDescription>Texture reads</CostDescription>
+  <Inputs>
+    <Input Name="Input"/>
+  </Inputs>
+  <Attributes>
+   <Attribute Name="DimA" PrettyName="DimensionA" Group="" Type="double" Min="0.01" Max="100">50</Attribute>
+   <Attribute Name="DimB" PrettyName="DimensionB" Group="" Type="double" Min="0.01" Max="10">5</Attribute>
+   <Attribute Name="ABOffset" PrettyName="Lacunarity" Group="" Type="double" Min="0.001" Max="2">1.0</Attribute>
+   <Attribute Name="FillSpots" PrettyName="Fill Spots" Group="" Type="double" Min="0.001" Max="1">0.5</Attribute>
+   <Attribute Name="Gain" Group="" Type="double" Min="0" Max="10">10</Attribute>
+   <Attribute Name="Organic" PrettyName="Organicness" Group="" Type="double" Min="0" Max="1">0.5</Attribute>
+   <Attribute Name="threshold" PrettyName="Threshold" Group="Threshold" Type="float" Min="0" Max="1" >0.5</Attribute>
+   <Attribute Name="thresholdBound" PrettyName="Soft Clip" Group="Threshold" Type="float" Min="0" Max="1" >0.5</Attribute>
+   <Attribute Name="gSizeA" PrettyName="A Multiplier" Group="Extra Attributes"  Type="double" Min="0.0001" Max="2">0.5</Attribute>
+   <Attribute Name="gSizeB" PrettyName="B Multiplier" Group="Extra Attributes"  Type="double" Min="0.0001" Max="2">0.5</Attribute>
+   <Attribute Name="gSpot" PrettyName="Spot Multiplier" Group="Extra Attributes"  Type="double" Min="0.001" Max="100">1</Attribute>
+   <Attribute Name="gGain" PrettyName="Gain Multiplier" Group="Extra Attributes"  Type="double" Min="0.001" Max="100">1</Attribute>
+   <Attribute Name="invertR" PrettyName="Invert" Group="Extra Attributes" Type="bool" Min="false" Max="true">false</Attribute>
+   <Attribute Name="useClamp" PrettyName="Clamp Values" Group="Extra Attributes" Type="bool" Min="false" Max="true">true</Attribute>
+   
+    <Attribute Name="Seed" PrettyName="Seed" Type="double" Min="1" Max="100000" Logarithmic="1">1</Attribute> 
+    <Attribute Name="XOffset" PrettyName="X Offset" Group="Offsets" Type="double" Min="0" Max="100" Logarithmic="1">0</Attribute>
+    <Attribute Name="YOffset" PrettyName="Y Offset" Group="Offsets" Type="double" Min="0" Max="100" Logarithmic="1">0</Attribute>
+    <Attribute Name="ZOffset" PrettyName="Z Offset" Group="Offsets" Type="double" Min="0" Max="100" Logarithmic="1">0</Attribute>
+    <Attribute Name="XScale" PrettyName="X Scale" Group="Scale" Type="double" Min="0" Max="100" Logarithmic="1">1</Attribute>
+    <Attribute Name="YScale" PrettyName="Y Scale" Group="Scale" Type="double" Min="0" Max="100" Logarithmic="1">1</Attribute>
+    <Attribute Name="ZScale" PrettyName="Z Scale" Group="Scale" Type="double" Min="0" Max="100" Logarithmic="1">1</Attribute>
+    <Attribute Name="rX" PrettyName="Rotate X" Group="Rotation" Type="double" Min="0"   Max="360">0</Attribute>
+    <Attribute Name="rY" PrettyName="Rotate Y" Group="Rotation" Type="double" Min="0"   Max="360">0</Attribute>
+    <Attribute Name="rZ" PrettyName="Rotate Z" Group="Rotation" Type="double" Min="0"   Max="360">0</Attribute>
+
+
+
+</Attributes>
+       <Contexts>
+        <Context Type="NodeGraphView">
+            <Inputs>
+                <Input Name="Input"><Pos>0,-50</Pos></Input>
+            </Inputs>
+        </Context>
+        <Context Type="GLSL">
+            <Shader ShaderType='Fragment'>
+                <Inputs>
+                    <Input Name="Input"> <Default>State.Position</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader ShaderType='TessEvaluation'>
+                <Inputs>
+                    <Input Name="Input"> <Default>State.Position</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader>
+
+                <Body><![CDATA[
+
+
+// build the needed vector attributes for position transform, offset max growths exponentially
+vec3 trans = vec3($XOffset,$YOffset,$ZOffset) + vec3($Seed);
+vec3 rotate = vec3($rX,$rY,$rZ);
+vec3 scale = vec3($XScale,$YScale,$ZScale);
+            
+// transform the position to translate,rotate,scale the position
+vec3 P = positionTransform(State.Position,trans,rotate,scale);
+
+
+// General Variables for use
+
+float FillSpots = $FillSpots;
+float gSpot = $gSpot;
+float Gain = $Gain;
+float gGain = $gGain;
+float ABOffset = $ABOffset;
+float Organic = $Organic;
+float DimA = $DimA;
+float DimB = $DimB;
+float gSizeA = $gSizeA;
+float gSizeB = $gSizeB;
+float invertR = float($invertR);
+float useClamp = float($useClamp);
+
+
+
+// Exponential Growth to compensate for scene size
+float size_pow = (pow(10000.0,ABOffset*ABOffset)-1.0) + 0.0001;
+
+
+/* Fractal Sizes multiplied by Global Sizes to work with big objects */
+DimA = DimA*(gSizeA*gSizeA*gSizeA*gSizeA);
+DimB = DimB*(gSizeB*gSizeB*gSizeB*gSizeB);
+float DimAS = pow(DimA,DimB);
+
+
+/* Minimum 0.2 at the moment to prevent too fine of a result */
+
+ABOffset = ($ABOffset+0.2);
+if (ABOffset<1.0)
+{ DimAS = 1.0 ;
+}
+
+
+
+/* Variables for stock Mari Fractal */
+vec3 seed = P*vec3(DimA);
+float noise_val = 0.0;
+
+/* Secondary Fractal Variables */
+
+float result = 0.0;
+float signal = 0.0;
+float weight = 0.0;
+vec3 point = P*vec3(DimB*DimAS);
+int i = 0;
+bool first = true;
+
+/* size of Array and octaves defines recursive maximum of secondary ridges */
+
+float exponentArray[10];
+float octaves=10.0;
+
+
+float H = 1.0-(FillSpots*gSpot);
+float frequency = (FillSpots*gSpot);
+float lacunarity = ABOffset*ABOffset;
+Gain = Gain*gGain;
+Organic = 1.0-Organic;
+
+
+
+
+  {
+    for (int i = 0; i< 10; ++i)
+    {
+      exponentArray[i] = pow(frequency, -H);
+      frequency *= lacunarity;
+    }
+
+    first = false;
+  } 
+
+
+
+/* Stock Mari Turbulence for Input Signal */
+  
+   
+     
+     float sharpness = log2(1.0+99.0*0.001)/log2(100.0);
+     vec3 scaled_seed = pow(2.0,float(i)) * seed / size_pow;
+     noise_val += abs(noise(scaled_seed))/pow(6.0-4.0*sharpness,float(i));
+    
+     signal = noise_val;
+
+
+/* get absolute value of signal  */
+  if ( signal < 0.0 ) signal = -signal;
+  signal = Organic - signal;
+
+/* square the signal, to increase "sharpness" of ridges */
+  signal *= signal;
+  result = signal;
+  
+
+for( i=1; i<octaves; i++ ) 
+  {
+    /* increasefrequency */
+    point.x *= lacunarity;
+    point.y *= lacunarity;
+    point.z *= lacunarity;
+
+/* weight by previous octave */
+
+    weight = signal * Gain;
+    if ( weight > 1.0 ) weight = 1.0;
+    if ( weight < 0.0 ) weight = 0.0;
+    signal = noise( point );
+    if ( signal < 0.0 ) signal = -signal;
+    signal = Organic - signal;
+    signal *= signal;
+    /* weight the contribution */
+    signal *= weight;
+    result += signal * exponentArray[i];
+  } 
+
+
+    // result = result + $ValOffset;
+    float resultClamp = clamp(result,0.0,1.0); 
+    // float Threshold = softThreshold($threshold,mix(result,resultClamp,useClamp));
+    float Threshold = softThreshold($threshold,$thresholdBound,mix(result,resultClamp,useClamp));
+    float resultInv = (1.0 - Threshold);
+    result = mix(resultInv,Threshold,$invertR);    
+
+
+    Output = vec4(result,result,result,1.0);
+
+
+                ]]></Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>
+
+
+

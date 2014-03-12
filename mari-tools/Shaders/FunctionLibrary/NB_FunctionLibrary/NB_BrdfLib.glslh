@@ -1,0 +1,55 @@
+////////////////////////////////////////////////////////////////////////////////
+// Mari Procedural Shader Library Registration
+// Copyright (c) 2014 Nicholas Breslow. All Rights Reserved.
+////////////////////////////////////////////////////////////////////////////////
+// File: NB_BrdfLib.glslc
+// Description: Shading library for various BRDF shading models.
+////////////////////////////////////////////////////////////////////////////////
+// Author: Nicholas Breslow
+// Web: www.nbreslow.com
+// Email: nick@nbreslow.com
+////////////////////////////////////////////////////////////////////////////////
+// Date: Feb 15, 2014
+////////////////////////////////////////////////////////////////////////////////
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+////////////////////////////////////////////////////////////////////////////////
+
+// Clamp value to 0...1 'float'
+float nb_saturate(float v);
+
+// Computes the fresnel function using
+// using the schlick approximation
+float nb_fresnel(vec3 I, vec3 N, float ior);
+
+// Calculate the tangent and binormal from the input normal vector
+void nb_tangentVectors(vec3 N, float anisotropicRotation, out vec3 X, out vec3 Y);
+
+// Sample the environment texture for a latitude longitude
+// map in the supplied direction for reflection mapping
+vec3 nb_envLatMap2D(sampler2D sampler, vec3 dir);
+
+// Oren Nayar Diffuse
+// "Generalization of Lambert's Reflectance Model" M. Oren and S.K. Nayar, SIGGRAPH p.239-246, July, 1994
+// oren nayar diffuse variant implementation source by Nicholas Breslow (www.nbreslow.com)
+float nb_orenNayar(vec3 I, vec3 N, vec3 L, float roughness);
+
+// Ward Anisotropic Specular
+// “Measuring and Modelling Anisotropic Reflection” Gregory J. Ward, Computer Graphics 26, 2, July 1992
+// Ward Anisotropic variant implementation
+float nb_wardAnisotropic(vec3 N, vec3 I, vec3 L, vec3 X, vec3 Y, float SpecularRoughness, float Anisotropy);
+
+// Ward Isotropic Specular
+// “Measuring and Modelling Anisotropic Reflection” Gregory J. Ward, Computer Graphics 26, 2, July 1992
+// Ward Anisotropic variant implementation
+float nb_wardIsotropic(vec3 N, vec3 I, vec3 L, float SpecularRoughness);

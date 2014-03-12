@@ -1,0 +1,86 @@
+<Node>
+/* mari.ideascale.com Jens Kafitz, 2013 A Maya Style Set Range Node */
+
+<ID>JK_SetRange</ID>
+<DefaultName>Set Range</DefaultName>
+<Cost>0.006</Cost>
+<CostDescription>Some calculations</CostDescription>
+  <Tags>
+    <Tag>_adjustment</Tag>
+  </Tags>
+
+<Inputs>
+        <Input Name="Input"></Input>
+</Inputs>
+<Attributes>
+
+	<Attribute Name="oMin" PrettyName="Old Min" Group="" Type="Vector4f" Min="(-1.0,-1.0,-1.0,0.0)" Max="(1.0,1.0,1.0,1.0)" Logarithmic="1">(0.0,0.0,0.0,0.0)</Attribute>
+
+	<Attribute Name="oMax" PrettyName="Old Max" Group="" Type="Vector4f" Min="(-1.0,-1.0,-1.0,0.0)" Max="(1.0,1.0,1.0,1.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+
+	<Attribute Name="nMin" PrettyName="New Min" Group="" Type="Vector4f" Min="(-1.0,-1.0,-1.0,0.0)" Max="(1.0,1.0,1.0,1.0)" Logarithmic="1">(0.0,0.0,0.0,0.0)</Attribute>
+
+	<Attribute Name="nMax" PrettyName="New Max" Group="" Type="Vector4f" Min="(-1.0,-1.0,-1.0,0.0)" Max="(1.0,1.0,1.0,1.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+
+	<Attribute Name="sMult" PrettyName="Multiply Scale" Group="Extra Attributes" Type="Vector4f" Min="(-25.0,-25.0,-25.0,0.0)" Max="(25.0,25.0,25.0,1.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+
+	<Attribute Name="useClamp" PrettyName="Clamp Values" Group="Extra Attributes" Type="bool" Min="false" Max="true">true</Attribute>
+
+</Attributes>
+
+<Contexts>
+	<Context Type="NodeGraphView">
+	<Inputs>
+		<Input Name="Input">
+			<Pos>0,-50</Pos>
+		</Input>
+	</Inputs>
+</Context>
+
+
+<Context Type="GLSL">
+<Shader>
+            	<Inputs>
+               	 <Input Name="Input"><Default>vec4(1,1,1,1)</Default></Input>
+            	</Inputs>
+
+ <Body>
+
+<![CDATA[
+  
+ 
+  vec4 old = (#Input.rgba - $oMin) / ($oMax - $oMin);
+  vec4 new = (($nMax - $nMin) * old.rgba) + $nMin ;
+  vec4 scale = vec4(new * $sMult);
+
+  if ($useClamp == true)
+  {
+
+  
+ Output = clamp(scale,vec4(0,0,0,0),vec4(1,1,1,1));
+ 
+
+  }
+
+  else
+
+ {
+
+  Output = scale;
+
+
+  }
+
+
+ ]]>
+
+</Body>
+
+
+
+
+</Shader>
+
+</Context>
+</Contexts>
+</Node>

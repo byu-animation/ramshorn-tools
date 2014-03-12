@@ -1,0 +1,176 @@
+#version 330
+
+////////////////////////////////////////////////////////////////////////////////
+// Mari Procedural Shader Library Registration
+// Copyright (c) 2014 Nicholas Breslow. All Rights Reserved.
+////////////////////////////////////////////////////////////////////////////////
+// File: NB_ProceduralLib.glslc
+// Description: Procedural library for various procedural functions.
+////////////////////////////////////////////////////////////////////////////////
+// Author: Nicholas Breslow
+// Web: www.nbreslow.com
+// Email: nick@nbreslow.com
+////////////////////////////////////////////////////////////////////////////////
+// Date: Feb 12, 2014
+////////////////////////////////////////////////////////////////////////////////
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+////////////////////////////////////////////////////////////////////////////////
+
+// Compute the square of a given value.
+float nb_sq(float x)
+{
+    return x * x;
+}
+
+// Compute the UV rotation matrix
+mat2 nb_uvRotation(float angle)
+{
+   // UV Rotation Matrix
+   float rotRads = radians(angle);
+   float cosAngle = cos(rotRads);
+   float sinAngle = sin(rotRads);
+   mat2 rotationMatrix = mat2(cosAngle,-sinAngle,sinAngle,cosAngle);
+
+   // UV Matrix
+   return rotationMatrix;
+}
+
+// Compute the UV repeat and offset on the UV Coords
+vec2 nb_uvMod(vec2 uv, float repeat, vec2 uvRepeat, vec2 uvOffset)
+{
+   // UV Repeat
+   uv *= repeat;
+
+   // U Repeat, V Repeat
+   uv *= uvRepeat;
+
+   // U Offset, V Offset
+   uv += uvOffset;
+
+   // Modified UV Coords
+   return uv;
+}
+
+// Compute a procedural 2D dot pattern
+float nb_dots2D(vec2 uv, float Scale)
+{
+   // Dots 2D
+   vec2 shapePos = 2.0 * fract(uv) - 1.0;
+   float shape = float( clamp(length(shapePos) / max(Scale,0.001),0.0,1.0) );
+   shape = 1.0 - shape;
+
+   // Dots
+   return shape;
+}
+
+// Compute a procedural 2D stripe pattern
+float nb_stripes2D(vec2 uv, float Scale)
+{
+   // Stripes 2D
+   vec2 shapePos = 2.0 * fract(uv) - 1.0;
+   float shape =  float (abs(shapePos) / Scale);
+   shape = 1.0 - shape;
+
+   // Stripes
+   return shape;
+}
+
+// Compute a procedural 2D super ellipse pattern
+// Source: http://en.wikipedia.org/wiki/Superellipse
+float nb_superEllipse2D(vec2 uv, float Scale, float Corner)
+{
+   // Super Ellipse 2D
+   vec2 shapePos = 2.0 * fract(uv) - 1.0;
+   float shape = float( clamp(pow((abs(shapePos.x/Scale)),Corner) + pow((abs(shapePos.y/Scale)),Corner),0.0,1.0) );
+   shape = 1.0 - shape;
+
+   // Super Ellipse
+   return shape;
+}
+
+// Compute a procedural 2D super shape pattern
+// Credit: "A generic geometric transformation that unifies a wide range of natural
+// and abstract shapes" Gielis, Johan, American Journal of Botany 90 (3) p.333–338, 2003
+// Source: http://www.amjbot.org/cgi/content/abstract/90/3/333
+float nb_superShape2D(vec2 uv, float Scale, float angle, float a, float b, float m, float n1, float n2, float n3, out float gradient)
+{
+   // Shape Position, Shape Angle
+   vec2 position = 2.0 * fract(uv) - 1.0;
+   float angleRads = radians(angle);
+   float angles = atan(position.y, position.x) + angleRads;
+
+   // Super Shape 2D
+   float r = pow(pow(abs(cos(m*angles/4.0) / a), n2) + pow(abs(sin(m*angles/4.0) / b), n3), -1.0/n1);
+   float shape = float (clamp(step(r * Scale, length(position)), 0.0, 1.0));
+   shape = 1.0 - shape;
+
+   // Super Shape Gradient
+   gradient = 1.0 / (r * Scale / length(position));
+
+   // Super Shape
+   return shape;
+}
+
+// Compute a procedural 2D weave shape pattern
+void nb_superWeave2D(vec2 uv, float contrast, out float d0, out float d1, out float f0, out float f1)
+{
+   // PI
+   float PI = 3.1415927;
+
+   // Fractional and integer components
+   vec2 f = fract(uv);
+   vec2 i = uv - f;
+   int i0 = int(i[0]);
+   int i1 = int(i[1]);
+
+   // Offset to center
+   vec2 offsetToCenter = vec2(0.5, 0.5);
+
+   // Offset fractional component
+   f = abs(offsetToCenter - f);
+
+   // Create smooth curve from .5 to 1.0
+   vec2 d = vec2(.5,.5) + pow(cos(f * PI), vec2(.75,.75)) / ((100.1-contrast)*0.04);
+
+   // Create alternating overlap
+   float parity = (i0 + i1) % 2;
+   int j0 = (parity > 0) ? 1 : 0;
+   int j1 = 1 - j0;
+
+   // Invert color of the underlap
+   d0 = d[j0];
+   d1 = d[j1];
+   f0 = f[j0];
+   f1 = f[j1];
+   d0 = 1.0 - d0;
+}
+
+// Anti-aliased step for procedurals where 'threshold' is constant and 'varyingVal' is smoothly varying
+// NOTE: dFdx/dFdy causes a problem on ATI cards. Using alternative nb_AAstep below.
+// float nb_AAstep(float threshold, float varyingVal)
+// {
+// 	float afwidth = 0.7 * length(vec2(dFdx(varyingVal), dFdy(varyingVal)));
+// 	return smoothstep(threshold-afwidth, threshold+afwidth, varyingVal);
+// }
+float nb_AAstep(float threshold, float varyingVal)
+{
+	float afwidth = 0.7 * clamp((varyingVal - threshold) / (1.0 - threshold),0.0,1.0);
+	return smoothstep(threshold-afwidth, threshold+afwidth, varyingVal);
+}
+
+// Compute the CIE luminance (Rec. 709) of a given color
+float nb_luminance(vec3 colorIn)
+{
+    return colorIn.r * 0.212671 + colorIn.g * 0.715160 + colorIn.b * 0.072169;
+}

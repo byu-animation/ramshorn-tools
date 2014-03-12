@@ -1,0 +1,110 @@
+<Node>
+
+/* mari.ideascale.com Jens Kafitz, 2013 A Vibrance Adjustment Layer */
+
+  <ID>JK_Vibrance</ID>
+  <DefaultName>Vibrance</DefaultName>
+  <Cost>0.0004</Cost>
+  <CostDescription>Possibly some texture reads</CostDescription>
+  <Tags>
+    <Tag>_adjustment</Tag>
+  </Tags>
+    <Inputs>
+        <Input Name="Input"></Input>
+    </Inputs>
+    <Attributes>
+	<Attribute Name="Vib" PrettyName="Vibrance" Group="" Type="double" Min="0" Max="1">0.0</Attribute>
+        <Attribute Name="Sat" PrettyName="Saturation" Group="" Type="double" Min="0" Max="1">0.0</Attribute>
+	   <Attribute Name="Mult" PrettyName="Multiplier" Group="" Type="double" Min="0" Max="10">1</Attribute>
+	   <Attribute Name="inv" PrettyName="Desaturate" Max="true" Min="false" Type="bool">false</Attribute>
+        <Attribute Name="Map" PrettyName="Saturation Curve" Group="Curves" Type="curve">0,1,0.35,0.786364,0.5975,0.566818,0.8375,0.299545,1,0</Attribute>
+	
+    </Attributes>
+  <Contexts>
+    <Context Type="NodeGraphView">
+        <Inputs>
+            <Input Name="Input"><Pos>0,-50</Pos></Input>
+        </Inputs>
+    </Context>
+    <Context Type="GLSL">
+        <Shader>
+            <Inputs>
+                <Input Name="Input"><Default>vec4(1,1,1,1)</Default></Input>
+            </Inputs>
+            <Body><![CDATA[
+
+
+vec4 Input = #Input;
+vec4 hsv = mriRgb2Hsv(Input);
+vec4 trhsv = vec4(1,1,1,1);
+
+//Isolating the saturation component via hsv
+float satClamp = hsv.g;
+
+//Halving the Multiplier Slider so that Values of 1 produce best result
+float mult = $Mult * 0.5;
+
+//remapping the existing Saturation against the Curve
+float curveInputA = mriCurveLookup($Map,satClamp); 
+
+//Inverting the values
+float curveremapA =  1.0 - curveInputA;
+
+// Multiplying saturation with slider
+
+float saturation = curveremapA*$Sat;
+float csat = saturation;
+
+
+
+
+
+if ($Vib > 0.0001)
+ { 
+ float rVib = mult * $Vib;
+ float gain = 1.0 - rVib;
+ 
+	if (csat >0.01)
+	{
+	 saturation = pow(csat,gain);
+	}
+	else
+	{
+	saturation = pow(0.01,gain);
+     }
+
+
+ }
+else
+ {
+ saturation = csat;
+ }
+
+
+if ($inv == true)
+{
+satClamp = satClamp - saturation;
+
+// Some funky clamping to prevent Mari from flattening into transparent layer
+trhsv = clamp(vec4(hsv.r,satClamp,hsv.b,Input.a),vec4(-1000,0,-1000,0),vec4(1000,1,1000,1));
+
+}
+else
+{
+satClamp = satClamp + saturation;
+
+// Some funky clamping to prevent Mari from flattening into transparent layer
+trhsv = clamp(vec4(hsv.r,satClamp,hsv.b,Input.a),vec4(-1000,0,-1000,0),vec4(1000,1,1000,1));
+}
+ 
+
+vec4 result = mriHsv2Rgb(trhsv);
+Output = vec4(result.r,result.g,result.b,Input.a);
+
+
+            ]]></Body>
+        </Shader>
+    </Context>
+  </Contexts>
+</Node>
+
