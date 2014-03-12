@@ -5,6 +5,7 @@
 
 
 #export USER_SCRIPTS=${HOME}/ADRMariScripts/
+export PROJECT_NAME=ramshorn
 export JOB=/groups/${PROJECT_NAME}
 export MARI_SCRIPT_PATH=${JOB}/ramshorn-tools/mari-tools/
 export MARI_DEFAULT_GEOMETRY_PATH=${JOB}/PRODUCTION/assets/
