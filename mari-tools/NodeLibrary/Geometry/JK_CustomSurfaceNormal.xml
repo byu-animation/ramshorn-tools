@@ -1,0 +1,89 @@
+<Node>
+
+
+/* mari.ideascale.com
+Jens Kafitz, 2013
+A Modification of the existing Mari 2.0 Surface Normal Node allowing the user to modify the resulting normal */
+
+
+    <ID>JK_CustomSurfaceNormal</ID>
+    <DefaultName>Custom Normal</DefaultName>
+    <Cost>0.002</Cost>
+    <CostDescription>Trivial operation</CostDescription>
+    <Inputs>
+        <Input Name="Input" />
+    </Inputs>
+
+    <Attributes>
+
+	<Attribute Name="rP" PrettyName="Rotate Precision" Group="Rotate Normal" Type="double" Min="0" 	Max="1">1</Attribute>
+    <Attribute Name="rX" PrettyName="Rotate X" Group="Rotate Normal" Type="double" Min="0" 	Max="360">0</Attribute>
+    <Attribute Name="rY" PrettyName="Rotate Y" Group="Rotate Normal" Type="double" Min="0" 	Max="360">0</Attribute>
+    <Attribute Name="rZ" PrettyName="Rotate Z" Group="Rotate Normal" Type="double" Min="0" 	Max="360">0</Attribute>
+	<Attribute Name="oP" PrettyName="Offset Precision" Group="Offset Normal" Type="double" Min="0" Max="10">1</Attribute>
+    <Attribute Name="oX" PrettyName="Offset X" Group="Offset Normal" Type="double" Min="-1" 	Max="1">0</Attribute>
+    <Attribute Name="oY" PrettyName="Offset Y" Group="Offset Normal" Type="double" Min="-1" 	Max="1">0</Attribute>
+    <Attribute Name="oZ" PrettyName="Offset Z" Group="Offset Normal" Type="double" Min="-1" 	Max="1">0</Attribute>
+
+    </Attributes>
+
+
+    <Contexts>
+
+        <Context Type="NodeGraphView">
+            <Inputs>
+                <Input Name="Input"><Pos>0,-50</Pos></Input>
+            </Inputs>
+        </Context>
+
+        <Context Type="GLSL">
+            <Shader ShaderType='Fragment'>
+
+                <Inputs>
+                    <Input Name="Input"> <Default>vec4(State.Normal,1.0)</Default> </Input>
+                </Inputs>
+			</Shader>
+
+            <Shader ShaderType='TessEvaluation'>
+                <Inputs>
+                    <Input Name="Input"> <Default>vec4(State.Normal.xyz,1.0)</Default> </Input>
+                </Inputs>
+            </Shader>
+
+
+            <Shader>
+                <Body><![CDATA[
+
+
+	float g = $rP;
+	float h = $oP;	
+
+    float rX = $rX * $rP;
+    float rY = $rY * $rP;
+    float rZ = $rZ * $rP;
+
+    float oX = $oX * $oP;
+    float oY = $oY * $oP;
+    float oZ = $oZ * $oP;
+
+
+    // build the needed vector attributes for position transform, offset max growths exponentially
+    vec3 trans = vec3(oX,oY,oZ);
+    vec3 rotate = vec3(rX,rY,rZ);
+    vec3 scale = vec3(1.0,1.0,1.0);
+
+      // transform the position to translate,rotate,scale the position
+    vec3 P = positionTransform(State.Normal,trans,rotate,scale);
+    
+	vec4 rotationResult = vec4(P, #Input.a);
+	Output = rotationResult;
+
+
+    
+     ]]></Body>
+            </Shader>
+
+        </Context>
+    </Contexts>
+</Node>
+

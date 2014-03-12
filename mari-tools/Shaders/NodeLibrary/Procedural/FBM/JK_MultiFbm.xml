@@ -1,0 +1,424 @@
+<Node>
+    <ID>Multi fBm</ID>
+    <Category>Procedural/Custom/FBM/</Category>
+    <DefaultName>multifBm</DefaultName>
+    <Description>FBM Noise with two additional Noise Drivers</Description>
+    <Cost>0.3</Cost>
+    <CostDescription>Shader Branching and multiple Fractals</CostDescription>
+    <Inputs>
+        <Input Name="Input"/>
+    </Inputs>
+    <Attributes>
+        <!--===============================================================================================================-->
+        <Attribute Name="colorA" PrettyName="Color A" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)" >(1,1,1,1)</Attribute>
+        <Attribute Name="colorB" PrettyName="Color B" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)" >(0,0,0,1)</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="Size" Group="Base" Type="double" Min="0" Max="1" Description="The general feature size" >0.4</Attribute>
+        <Attribute Name="octaves" Group="Base" Type="float" Min="0" Max="8" Description="Visual complexitity of noise" >3</Attribute>
+        <Attribute Name="lacunarity" Group="Base" Type="double" Min="0" Max="8" Description="Frequency spacing between successive octaves" >4</Attribute>
+        <Attribute Name="Amp" PrettyName="Amplitute" Group="Base" Type="double" Min="0.0001" Max="1" Description="Each successive octave gets multiplied gain*amplitute, smaller values result in less contrast between frequencies" >0.5</Attribute>
+        <Attribute Name="FreqOffset" PrettyName="Offset" Group="Base" Type="double" Min="0.0001" Max="1" Description="Frequency Offset" >0.5</Attribute>
+        <Attribute Name="SeedBase" PrettyName="Seed" Group="Base" Type="double" Min="1" Max="100000" Logarithmic="1" Description="frequency">1</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="gain" Group="Base" Type="double" Min="0" Max="1" Description="Each successive octave gets multiplied gain*amplitute, smaller values result in less contrast for the overal result">1</Attribute>
+        <Attribute Name="Threshold" PrettyName="Threshold" Group="Base" Type="double" Min="0" Max="1" Description="Threshold of final result" >0.1</Attribute>
+        <Attribute Name="Clip" PrettyName="Soft Clip Result" Group="Base" Type="double" Min="0.001" Max="1" Description="extends the threshold box by a fixed value up and down">0.6</Attribute>
+        <Attribute Name="Absolut" PrettyName="Absolute Values" Group="Base" Type="bool" Min="false" Max="true" Description="By default positive and negative noise values will all be treated as positive making for a denser noise. This will remove any negative noise values">false</Attribute>
+        <Attribute Name="Invert" PrettyName="Invert" Group="Base" Type="bool" Min="false" Max="true" Description="Inverts the Noise result before ColorA+B are applied" >false</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="PreviewA" PrettyName="Preview Handle A" Group="Handle A" Type="bool" Min="false" Max="true" Description="Shows you the Result from the Fractal in Handle A" >false</Attribute>
+        <Attribute Name="HandleA" Group="Handle A" Type="stringlist" Description="Which feature from Base Noise to be driven by secondary noise" >Octave,None,Size,Octave,Lacunarity,Amplitute,Offset,Gain</Attribute>
+        <Attribute Name="ASize" Group="Handle A" Type="double" Min="0" Max="1" Description="The general feature size for HandleA" >0.5</Attribute>
+        <Attribute Name="AOctaves" Group="Handle A" Type="float" Min="0" Max="8" Description="Visual complexitity of noise" >3</Attribute>
+        <Attribute Name="ALacunarity" Group="Handle A" Type="double" Min="0" Max="8" Description="Frequency spacing between successive octaves" >4</Attribute>
+        <Attribute Name="Aamp" PrettyName="AAmplitute" Group="Handle A" Type="double" Min="0.0001" Max="1" Description="Each successive octave gets multiplied gain*amplitute, smaller values result in less contrast between frequencies">0.5</Attribute>
+        <Attribute Name="AFreqOffset" PrettyName="Offset" Group="Handle A" Type="double" Min="0.0001" Max="1" Description="Frequency Offset for HandleA" >0.5</Attribute>
+        <Attribute Name="AGain" Group="Handle A" Type="double" Min="0" Max="1" Description="Each successive octave gets multiplied gain*amplitute, smaller values result in less contrast for the overal result" >1</Attribute>
+        <Attribute Name="SeedA" PrettyName="Seed A" Group="Handle A" Type="double" Min="1" Max="100000" Logarithmic="1" Description="Randomize position">1</Attribute>
+        <Attribute Name="nMinA" PrettyName="New Min A" Group="Handle A" Type="double" Min="0.001" Max="8" Description="New minumum Value for Handle A">1.0</Attribute>
+        <Attribute Name="nMaxA" PrettyName="New Max A" Group="Handle A" Type="double" Min="0.001" Max="8" Description="New maximum Value for Handle A">1.2</Attribute>
+        <Attribute Name="ClipA" PrettyName="Negative as black" Group="Handle A" Type="bool" Min="false" Max="true" Description="By default positive and negative noise values will all be treated as positive making for a denser noise. This will remove any negative noise values">false</Attribute>
+        <Attribute Name="EnforceA" PrettyName="Negative as transparent" Group="Handle A" Type="bool" Min="false" Max="true" Description="When Clip Negative is turned on, this will enforce the clipped areas trhoughout the entire fractal, so any further modification only affects the existing shapes">false</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="PreviewB" PrettyName="Preview Handle B" Group="Handle B" Type="bool" Min="false" Max="true" Description="Shows you the Result from the Fractal in Handle B" >false</Attribute>
+        <Attribute Name="HandleB" Group="Handle B" Type="stringlist" Description="Which feature from Base Noise to be driven by tertiary noise" >None,None,Size,Octave,Lacunarity,Amplitute,Offset,Gain</Attribute>
+        <Attribute Name="BSize" Group="Handle B" Type="double" Min="0" Max="1" Description="The general feature size for HandleB" >0.5</Attribute>
+        <Attribute Name="BOctaves" Group="Handle B" Type="float" Min="0" Max="8" Description="Visual complexitity of noise" >3</Attribute>
+        <Attribute Name="BLacunarity" Group="Handle B" Type="double" Min="0" Max="8" Description="Frequency spacing between successive octaves" >4</Attribute>
+        <Attribute Name="Bamp" PrettyName="BAmplitute" Group="Handle B" Type="double" Min="0.0001" Max="1" Description="Each successive octave gets multiplied gain*amplitute, smaller values result in less contrast between frequencies" >0.5</Attribute>
+        <Attribute Name="BFreqOffset" PrettyName="Offset" Group="Handle B" Type="double" Min="0.0001" Max="1" Description="Frequency Offset HandleB" >0.5</Attribute>
+        <Attribute Name="BGain" Group="Handle B" Type="double" Min="0" Max="1" Description="Each successive octave gets multiplied gain*amplitute, smaller values result in less contrast for the overal result">1.0</Attribute>
+        <Attribute Name="SeedB" PrettyName="Seed B" Group="Handle B" Type="double" Min="1" Max="100000" Logarithmic="1" Description="Randomize position">1</Attribute>
+        <Attribute Name="nMinB" PrettyName="New Min B" Group="Handle B" Type="double" Min="0.001" Max="8" Description="New minumum Value for Handle B" >3.0</Attribute>
+        <Attribute Name="nMaxB" PrettyName="New Max B" Group="Handle B" Type="double" Min="0.001" Max="8" Description="New maximum Value for Handle B" >3.05</Attribute>
+        <Attribute Name="ClipB" PrettyName="Negative as black" Group="Handle B" Type="bool" Min="false" Max="true" Description="By default positive and negative noise values will all be treated as positive making for a denser noise. This will remove any negative noise values">false</Attribute>
+        <Attribute Name="EnforceB" PrettyName="Negative as transparent" Group="Handle B" Type="bool" Min="false" Max="true" Description="When Clip Negative is turned on, this will enforce the clipped areas trhoughout the entire fractal, so any further modification only affects the existing shapes. This can work in combination with Propagate Additive">false</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="uv" PrettyName="UV Space" Group="Transform Space" Type="bool" Min="false" Max="true" Description="Runs the noise 2d uv based, use offset/scale x/y and rotate z" >false</Attribute>
+        <Attribute Name="trB" PrettyName="Base" Group="Transform Space" Type="bool" Min="false" Max="true" Description="Applies the transformation to the base fractal" >true</Attribute>
+        <Attribute Name="trhA" PrettyName="Handle A" Group="Transform Space" Type="bool" Min="false" Max="true" Description="Applies the transformation to the fractal in Handel A" >true</Attribute>
+        <Attribute Name="trhB" PrettyName="Handle B" Group="Transform Space" Type="bool" Min="false" Max="true" Description="Applies the transformation to the fractal in Handel B" >true</Attribute>
+        <Attribute Name="XScale" PrettyName="Scale X" Group="Transform Scale" Type="double" Min="0" Max="100" Logarithmic="1" >1</Attribute>
+        <Attribute Name="YScale" PrettyName="Scale Y" Group="Transform Scale" Type="double" Min="0" Max="100" Logarithmic="1" >1</Attribute>
+        <Attribute Name="ZScale" PrettyName="Scale Z" Group="Transform Scale" Type="double" Min="0" Max="100" Logarithmic="1" >1</Attribute>
+        <Attribute Name="rX" PrettyName="Rotate X" Group="Transform Rotate" Type="double" Min="0" Max="360" >0</Attribute>
+        <Attribute Name="rY" PrettyName="Rotate Y" Group="Transform Rotate" Type="double" Min="0" Max="360" >0</Attribute>
+        <Attribute Name="rZ" PrettyName="Rotate Z" Group="Transform Rotate" Type="double" Min="0" Max="360" >0</Attribute>
+        <Attribute Name="XOffset" PrettyName="Translate X" Group="Transform Translate" Type="double" Min="0" Max="100" Logarithmic="1" >0</Attribute>
+        <Attribute Name="YOffset" PrettyName="Translate Y" Group="Transform Translate" Type="double" Min="0" Max="100" Logarithmic="1" >0</Attribute>
+        <Attribute Name="ZOffset" PrettyName="Translate Z" Group="Transform Translate" Type="double" Min="0" Max="100" Logarithmic="1" >0</Attribute>
+        <!--===============================================================================================================-->
+    </Attributes>
+    <Contexts>
+        <Context Type="NodeGraphView">
+            <Inputs>
+                <Input Name="Input"><Pos>0,-50</Pos></Input>
+            </Inputs>
+        </Context>
+        <Context Type="GLSL">
+            <Shader ShaderType='Fragment'>
+                <Inputs>
+                    <Input Name="Input"> <Default>vec4(1,1,1,1)</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader ShaderType='TessEvaluation'>
+                <Inputs>
+                    <Input Name="Input"> <Default>vec4(1,1,1,1)</Default> </Input>
+                </Inputs>
+            </Shader>
+            <Shader>
+                <Body><![CDATA[
+
+                // compensate for scene size by applying eponential growth
+                float size_pow = (pow(10000.0,$Size*$Size)-1.0) + 0.0001;
+
+                // 3d space surface position
+                // build the needed vector attributes for position transform, offset max growths exponentially
+                vec3 trans = (vec3($XOffset,$YOffset,$ZOffset)*size_pow);
+                vec3 rotate = vec3($rX,$rY,$rZ);
+                vec3 scale = vec3($XScale,$YScale,$ZScale);
+
+                // transform the position to translate,rotate,scale the position
+                vec3 InputScaleBase3d = positionTransform(State.Position,trans,rotate,scale) / size_pow;
+                vec3 _Input3d = State.Position;
+
+                // 2d uv space surface position
+                // build the needed vector attributes for position transform, offset max growths exponentially
+                vec2 UVOffset = vec2($XOffset,$YOffset);
+                vec2 UVScale = vec2($XScale,$YScale);
+
+                // transform the position to translate,rotate,scale the position
+                vec2 InputScaleUV = relUVTransform(State.UV,$rZ,UVOffset,UVScale,0.5,0.5)/ normalize(size_pow);
+
+                // blend between 2d and 3d space position
+                vec3 InputScaleBase = mix(InputScaleBase3d,vec3(InputScaleUV,1.0),float($uv));
+                vec3 _Input = mix(State.Position,vec3(State.UV,1.0),float($uv));
+
+                // transform base noise
+                vec3 seedBaseA = InputScaleBase +vec3($SeedBase);
+                vec3 seedBaseB = _Input.rgb + vec3($SeedBase);
+                vec3 seedBase = mix(seedBaseB,seedBaseA,float($trB));
+
+                // transform handle a
+                vec3 seedAa = InputScaleBase + vec3($SeedA);
+                vec3 seedAb = _Input.rgb + vec3($SeedA);
+                vec3 seedA = mix(seedAb,seedAa,float($trhA));
+
+                // transform handle b
+                vec3 seedBa = InputScaleBase + vec3($SeedB);
+                vec3 seedBb = _Input.rgb + vec3($SeedB);
+                vec3 seedB = mix(seedBb,seedBa,float($trhB));
+
+                // size for handle a
+                float ASize_pow = (pow(10000.0,$ASize*$ASize)-1.0) + 0.0001;
+                vec3 AScaled_seed = seedA / ASize_pow;
+
+                // size for handle b
+                float BSize_pow = (pow(10000.0,$BSize*$BSize)-1.0) + 0.0001;
+                vec3 BScaled_seed = seedB / BSize_pow;
+
+                // for propagation of negativeasblack+negativeastransparent. marking variable as 0 if handle is set to none
+                int AInUse = 1;
+                int BInUse = 1;
+
+                switch($HandleA)
+                {
+                    case 0:
+                        AInUse = 0;
+                    break;
+                }
+
+                switch($HandleB)
+                {
+                    case 0:
+                        BInUse = 0;
+                    break;
+                }
+
+                // noise result from handle a
+                float AOctaves = $AOctaves;
+                float ALacunarity = $ALacunarity;
+                float AGain = $AGain;
+                float Aamp = $Aamp;
+                float AFreqOffset = $AFreqOffset;
+                float ANoise = rmfBm(AScaled_seed,AOctaves,ALacunarity,AGain,Aamp,AFreqOffset);
+
+                // noise result from handle b
+                float BOctaves = $BOctaves;
+                float BLacunarity = $BLacunarity;
+                float BGain = $BGain;
+                float Bamp = $Bamp;
+                float BFreqOffset = $BFreqOffset;
+                float BNoise = rmfBm(BScaled_seed,BOctaves,BLacunarity,BGain,Bamp,BFreqOffset);
+
+                // remapping noise result from handle b. adding small differential in calse newmin and new max are the same
+                float nMinB = $nMinB;
+                float nMaxB = $nMaxB;
+
+                if (nMinB==nMaxB)
+                {
+                    nMaxB = nMaxB+0.01;
+                }
+
+                float BNew = remap(BNoise,0.0,1.0,nMinB,nMaxB,1.0);
+                float BNoise_Val = BNew;
+
+                // remapping noise result from handle a. adding small differential in calse newmin and new max are the same
+                float nMinA = $nMinA;
+                float nMaxA = $nMaxA;
+
+                if (nMinA==nMaxA)
+                {
+                    nMaxA = nMaxA+0.01;
+                }
+
+                float ANew = remap(ANoise,0.0,1.0,nMinA,nMaxA,1.0);
+                float ANoise_Val = ANew;
+
+                // size for main noise
+                vec3 scaled_seed = seedBase  / size_pow;
+
+                // noise eval variables
+                float noise_val = 0.0;
+                vec3 final_seed = scaled_seed;
+                float final_octaves = $octaves;
+                float final_lac = $lacunarity;
+                float final_gain = $gain;
+                float final_amp = $Amp;
+                float final_offset = $FreqOffset;
+
+                bool black_enforceA = false;
+                bool black_enforceB = false;
+
+                // variables for marking which slots are in use, this is to allow multiplication of values. for example if handle a is mapped with octave and handle b is mapped with octave, the results will get multiplied.
+                float ASizeInUse = 0.0;
+                float AOctavesInUse = 0.0;
+                float AGainInUse = 0.0;
+                float ALacInUse = 0.0;
+                float AAmpInUse = 0.0;
+                float AOffsetInUse = 0.0;
+
+                switch($HandleA)
+                {
+                    //NONE
+                    case 0:
+                        ASizeInUse = 0.0;
+                        AOctavesInUse = 0.0;
+                        AGainInUse = 0.0;
+                        ALacInUse = 0.0;
+                        AAmpInUse = 0.0;
+                        AOffsetInUse = 0.0;
+                        black_enforceA = false;
+                    break;
+
+                    //SIZE
+                    case 1:
+                        final_seed = scaled_seed*ANoise_Val;
+                        ASizeInUse = 1.0;
+                        AOctavesInUse = 0.0;
+                        AGainInUse = 0.0;
+                        ALacInUse = 0.0;
+                        AAmpInUse = 0.0;
+                        AOffsetInUse = 0.0;
+                        black_enforceA = $EnforceA;
+                    break;
+
+                    //OCTAVE
+                    case 2:
+                        final_octaves = ANoise_Val;
+                        ASizeInUse = 0.0;
+                        AOctavesInUse = 1.0;
+                        AGainInUse = 0.0;
+                        ALacInUse = 0.0;
+                        AAmpInUse = 0.0;
+                        AOffsetInUse = 0.0;
+                        black_enforceA = $EnforceA;
+                    break;
+
+                    //LACUNARITY
+                    case 3:
+                        final_lac = ANoise_Val;
+                        ASizeInUse = 0.0;
+                        AOctavesInUse = 0.0;
+                        AGainInUse = 0.0;
+                        ALacInUse = 1.0;
+                        AAmpInUse = 0.0;
+                        AOffsetInUse = 0.0;
+                        black_enforceA = $EnforceA;
+                    break;
+
+                    //AMPLITUTE
+                    case 4:
+                        ANoise_Val = (0.9999* ANew) + 0.0001 ;
+                        final_amp = ANoise_Val;
+                        ASizeInUse = 0.0;
+                        AOctavesInUse = 0.0;
+                        AGainInUse = 0.0;
+                        ALacInUse = 0.0;
+                        AAmpInUse = 1.0;
+                        AOffsetInUse = 0.0;
+                        black_enforceA = $EnforceA;
+                    break;
+
+                    //OFFSET
+                    case 5:
+                        ANoise_Val = (0.9999* ANew) + 0.0001 ;
+                        final_offset = ANoise_Val;
+                        ASizeInUse = 0.0;
+                        AOctavesInUse = 0.0;
+                        AGainInUse = 0.0;
+                        ALacInUse = 0.0;
+                        AAmpInUse = 0.0;
+                        AOffsetInUse = 1.0;
+                        black_enforceA = $EnforceA;
+                    break;
+
+                    //GAIN
+                    case 6:
+                        ANoise_Val = (0.9999* ANew) + 0.0001 ;
+                        final_gain = ANoise_Val;
+                        ASizeInUse = 0.0;
+                        AOctavesInUse = 0.0;
+                        AGainInUse = 1.0;
+                        ALacInUse = 0.0;
+                        black_enforceA = $EnforceA;
+                    break;
+                }
+
+                switch($HandleB)
+                {
+                    //NONE
+                    case 0:
+                        black_enforceB = false;
+                    break;
+
+                    //SIZE
+                    case 1:
+                        final_seed = scaled_seed*(BNoise_Val*mix(1.0,ANoise_Val,ASizeInUse));
+                        black_enforceB = $EnforceB;
+                    break;
+
+                    //OCTAVES
+                    case 2:
+                        float tmpANoiseVal = mix(1.0,ANoise_Val,AOctavesInUse);
+                        final_octaves = BNoise_Val * tmpANoiseVal;
+                        black_enforceB = $EnforceB;
+                    break;
+
+                    //LACUNARITY
+                    case 3:
+                        final_lac = BNoise_Val*mix(1.0,ANoise_Val,ALacInUse);
+                        black_enforceB = $EnforceB;
+                    break;
+
+                    //AMPLITUTE
+                    case 4:
+                        final_amp = BNoise_Val*mix(1.0,ANoise_Val,AAmpInUse);
+                        black_enforceB = $EnforceB;
+                    break;
+
+                    //OFFSET
+                    case 5:
+                        final_offset = BNoise_Val*mix(1.0,ANoise_Val,AOffsetInUse);
+                        black_enforceB = $EnforceB;
+                    break;
+
+                    //GAIN
+                    case 6:
+                        final_gain = BNoise_Val*mix(1.0,ANoise_Val,AGainInUse);
+                        black_enforceB = $EnforceB;
+                    break;
+                }
+
+                // final noise value with inputs from noise a and noise b if mapped.
+                noise_val = smoothfBm(final_seed,final_octaves,final_lac,final_gain,final_amp,final_offset);
+                noise_val = mix(noise_val,abs(noise_val),float($Absolut));
+
+                // returning 1 if noise is over 0, and 0 if noise is under 0 for negativeasblack and negativeastransparent
+                float ANoiseNeg = 1.0;
+                float BNoiseNeg = 1.0;
+
+                if (black_enforceA==true || $ClipA==true)
+                {
+                    if (ANoise > 0.0)
+                    {
+                        ANoiseNeg = 1.0;
+                    }else{
+                        ANoiseNeg=0.0;
+                    }
+                }
+
+                if (black_enforceB==true || $ClipB==true)
+                {
+                    if (BNoise > 0.0)
+                    {
+                        BNoiseNeg = 1.0;
+                    }else{
+                        BNoiseNeg=0.0;
+                    }
+                }
+
+                //////////////////////////////////////////////////////////////////////////////////////////////////
+                // to do: allow for combination of negativeastransparent and negativeasblack on both handles
+                //////////////////////////////////////////////////////////////////////////////////////////////////
+
+                // taking minumum value of two noises to determine where areas are transparent
+                // when negativeasblack is on for both handles the common max value is showing
+                // when negativeastransparent is on for both handles the common min value is used for transparency
+                // a combination of negativeasblack on one handle and negativeastransparent on another is currently not supported
+                // since that would require even more if statements. currently the used values anoiseneg and bnoiseneg get set when either negativeasblack
+                // or negativeastransparent is on. there is no differentiation between the values.
+
+                float _propagateTransparent = min(ANoiseNeg,BNoiseNeg);
+                float A_B_PropagateBlackMix = max(float($ClipA),float($ClipB));
+                float A_B_PropagateTransparentMix = max(float($EnforceA),float($EnforceB));
+                vec4 propagateTransparent = mix(vec4(_propagateTransparent,_propagateTransparent,_propagateTransparent,1.0),vec4(_propagateTransparent),A_B_PropagateTransparentMix);
+
+                // thresholding of result
+                float finalValueA= mix(0.0,1.0,noise_val);
+                float resultA = softThreshold($Threshold, $Clip*2, finalValueA);
+
+                float _invertResult = float($Invert);
+
+                vec4 fractal = mix(mix($colorB,$colorA,resultA),mix($colorA,$colorB,resultA),_invertResult)*propagateTransparent;
+
+                // if preview is active show pure result from handlea noise or handleb noise
+                if ($PreviewA==true)
+                {
+                    fractal = mix(vec4(0,0,0,1),vec4(1,1,1,1),ANoise);
+                }
+
+                if ($PreviewB==true)
+                {
+                    fractal = mix(vec4(0,0,0,1),vec4(1,1,1,1),BNoise);
+                }
+
+                // output
+                Output = fractal;
+
+                ]]></Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>
+

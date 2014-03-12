@@ -1,0 +1,86 @@
+<Node>
+<ID>JK_GradePlus</ID>
+  <DefaultName>Grade</DefaultName>
+  <Cost>0.005</Cost>
+  <CostDescription>Some calculations</CostDescription>
+  <Tags>
+    <Tag>_adjustment</Tag>
+  </Tags>
+    <Inputs>
+        <Input Name="Input"></Input>
+    </Inputs>
+    <Attributes>
+        <Attribute Name="Blackpoint" Group="" Type="Vector4f" Min="(-1.0,-1.0,-1.0,-1.0)" Max="(1.0,1.0,1.0,1.0)" Logarithmic="1">(0.0,0.0,0.0,0.0)</Attribute>
+        <Attribute Name="BPCol" PrettyName="   " Group="" Type="Color" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="Whitepoint" Group="" Type="Vector4f" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="WPCol" PrettyName="   " Group="" Type="Color" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="Lift" Group="" Type="Vector4f" Min="(-1.0,-1.0,-1.0,-1.0)" Max="(1.0,1.0,1.0,1.0)" Logarithmic="1">(0.0,0.0,0.0,0.0)</Attribute>
+        <Attribute Name="LiftCol" PrettyName="   " Group="" Type="Color" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="Gain" Group="" Type="Vector4f" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="GainCol" PrettyName="   " Group="" Type="Color" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="Multiply" Group="" Type="Vector4f" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="MultCol" PrettyName="   " Group="" Type="Color" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="Offset" Group="" Type="Vector4f" Min="(-1.0,-1.0,-1.0,-1.0)" Max="(1.0,1.0,1.0,1.0)" Logarithmic="1">(0.0,0.0,0.0,0.0)</Attribute>
+        <Attribute Name="OffsetCol" PrettyName="   " Group="" Type="Color" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="Gamma" Group="" Type="Vector4f" Min="(0.2,0.2,0.2,0.2)" Max="(5.0,5.0,5.0,5.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="GammaCol" PrettyName="   " Group="" Type="Color" Min="(0.0,0.0,0.0,0.0)" Max="(4.0,4.0,4.0,4.0)" Logarithmic="1">(1.0,1.0,1.0,1.0)</Attribute>
+        <Attribute Name="Red"   Group="" Type="bool" Min="true" Max="false">true</Attribute>
+        <Attribute Name="Green" Group="" Type="bool" Min="true" Max="false">true</Attribute>
+        <Attribute Name="Blue"  Group="" Type="bool" Min="true" Max="false">true</Attribute>
+        <Attribute Name="Alpha" Group="" Type="bool" Min="true" Max="false">true</Attribute>
+    </Attributes>
+  <Contexts>
+    <Context Type="NodeGraphView">
+        <Inputs>
+            <Input Name="Input"><Pos>0,-50</Pos></Input>
+        </Inputs>
+    </Context>
+    <Context Type="GLSL">
+        <Shader>
+            <Inputs>
+                <Input Name="Input"><Default>vec4(1,1,1,1)</Default></Input>
+            </Inputs>
+            <Body><![CDATA[
+
+  
+
+    vec4 BPFinal = $Blackpoint * $BPCol;
+                    if ($Blackpoint == vec4(0.0,0.0,0.0,0.0) && $BPCol != vec4(1.0,1.0,1.0,1.0))
+                    {
+                        BPFinal = $BPCol;
+                    }
+
+    vec4 WPFinal = $Whitepoint * $WPCol;
+    vec4 LiftFinal = $Lift * $LiftCol;
+                    if ($Lift == vec4(0.0,0.0,0.0,0.0) && $LiftCol != vec4(1.0,1.0,1.0,1.0))
+                    {
+                        LiftFinal = $LiftCol;
+                    }
+    vec4 GainFinal = $Gain * $GainCol;
+    vec4 MultFinal = $Multiply * $MultCol;
+    vec4 OffsetFinal = $Offset * $OffsetCol;
+                       if ($Offset == vec4(0.0,0.0,0.0,0.0) && $OffsetCol != vec4(1.0,1.0,1.0,1.0))
+                    {
+                        OffsetFinal = $OffsetCol;
+                    }
+    vec4 GammaFinal = $Gamma * $GammaCol;
+
+
+    vec4 A = MultFinal * ( GainFinal - LiftFinal ) / ( WPFinal - BPFinal );
+    vec4 B = OffsetFinal + LiftFinal - A * BPFinal;
+    vec4 C = A * #Input + B;
+    C = clamp(C, vec4(0.0), C);
+
+    vec4 result = pow( C, 1.0 / $Gamma );
+    Output = vec4(
+                $Red   ? result.r : #Input.r,
+                $Green ? result.g : #Input.g,
+                $Blue  ? result.b : #Input.b,
+                $Alpha ? result.a : #Input.a
+                );
+            ]]></Body>
+        </Shader>
+    </Context>
+  </Contexts>
+
+</Node>

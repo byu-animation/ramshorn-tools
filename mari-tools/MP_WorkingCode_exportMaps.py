@@ -16,7 +16,11 @@ projectName = "MariPipe"
 
 # ------------------------------------------------------------------------------
 def convertToRat(filePathNoExt):
-	print "Converting " + filePathNoExt + ".png to RAT! Eventually..."
+	args = ['iconvert', '-g', 'off', filePathNoExt + '.png', filePathNoExt + '.rat', 'makemips', 'compression="none"']
+	try:
+		subprocess.check_call(args)
+	except subprocess.CalledProcessError as e:
+		mari.utils.message("Error: " + str(e))
 
 def exportChannel(geo, imgSet, chanName):
 	# Build up a map of (UDIM -> image) pairs

@@ -1,0 +1,51 @@
+<Node>
+/* Orlando Esponda, 2013 Node to Control the intensity of a Normal Map */
+  <ID>oe Normal Map Intensity</ID>
+  <DefaultName>Normal Map Intensity</DefaultName>
+  <Cost>0.005</Cost>
+  <CostDescription>Some calculations</CostDescription>
+  <Tags>
+    <Tag>_adjustment</Tag>
+  </Tags>
+    <Inputs>
+        <Input Name="Input"></Input>
+    </Inputs>
+    <Attributes>
+        <Attribute Name="intensity" PrettyName="NormalMap Intensity" Group="" Type="double" Min="0.0" Max="2.0">1.0</Attribute>
+    </Attributes>
+  <Contexts>
+    <Context Type="NodeGraphView">
+        <Inputs>
+            <Input Name="Input"><Pos>0,-50</Pos></Input>
+        </Inputs>
+    </Context>
+    <Context Type="GLSL">
+        <Shader>
+            <Inputs>
+                <Input Name="Input"><Default>vec4(1,1,1,1)</Default></Input>
+            </Inputs>
+            <Body><![CDATA[
+
+    for (int i = 0; i != 2; ++i)
+    {
+        Output[i] = ((#Input[i] - 0.5) * $intensity) + 0.5;
+    }
+
+    if ($intensity < 1.0)
+    {
+        float invIntensity = ($intensity - 1.0) * (-1.0);
+        Output.b = (#Input.b - 0.0) * (1.0 - invIntensity) / (1.0 - 0.0) + invIntensity;
+    }
+    else
+    {
+        Output.b = #Input.b;
+    }
+
+    Output.a = #Input.a;
+
+            ]]></Body>
+        </Shader>
+    </Context>
+  </Contexts>
+</Node>
+

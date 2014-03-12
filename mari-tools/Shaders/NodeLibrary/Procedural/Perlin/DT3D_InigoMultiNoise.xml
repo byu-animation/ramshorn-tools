@@ -1,0 +1,74 @@
+<Node>
+    <ID>Inigo Noise</ID>
+    <Category>Procedural/Custom/Perlin/</Category>
+    <Inputs>
+        <Input Name="Input"></Input>
+    </Inputs>
+    <Attributes>
+        <!--===============================================================================================================-->
+        <Attribute Name="colorA" PrettyName="Color A" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)">(0,0,0,1)</Attribute>
+        <Attribute Name="colorB" PrettyName="Color B" Group="Color" Type="color" Min="(0,0,0,1)" Max="(1,1,1,1)">(1,1,1,1)</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="frequency" PrettyName="Frequency" Group="Size" Type="float" Min="1" Max="10" Logarithmic="1">2</Attribute>
+        <Attribute Name="Seed" PrettyName="Seed" Group="Size" Type="double" Min="1" Max="100000" Logarithmic="1">1</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="octaves" PrettyName="Octaves" Group="Modifiers" Type="int" Min="1" Max="10" Logarithmic="1">3</Attribute>
+        <Attribute Name="lacunarity" PrettyName="Lacunarity" Group="Modifiers" Type="float" Min="0" Max="10" >1.5</Attribute>
+        <Attribute Name="gain" PrettyName="Gain" Group="Modifiers" Type="float" Min="0" Max="1" >0.5</Attribute>
+        <Attribute Name="threshold" PrettyName="Threshold" Group="Modifiers" Type="float" Min="0" Max="1" >0</Attribute>
+        <Attribute Name="invert" PrettyName="Invert" Group="Modifiers" Type="bool" Min="false" Max="true">false</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="uv" PrettyName="UV Space" Group="Space" Type="bool" Min="false" Max="true" Description="Runs the noise 2d uv based, use offset/scale x/y and rotate z" >false</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="scaleX" PrettyName="Scale X" Group="Transform Scale" Type="float" Min="0" Max="100" Logarithmic="1">1</Attribute>
+        <Attribute Name="scaleY" PrettyName="Scale Y" Group="Transform Scale" Type="float" Min="0" Max="100" Logarithmic="1">1</Attribute>
+        <Attribute Name="scaleZ" PrettyName="Scale Z" Group="Transform Scale" Type="float" Min="0" Max="100" Logarithmic="1">1</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="rotateX" PrettyName="Rotate X" Group="Transform Rotate" Type="float" Min="0" Max="360">0</Attribute>
+        <Attribute Name="rotateY" PrettyName="Rotate Y" Group="Transform Rotate" Type="float" Min="0" Max="360">0</Attribute>
+        <Attribute Name="rotateZ" PrettyName="Rotate Z" Group="Transform Rotate" Type="float" Min="0" Max="360">0</Attribute>
+        <!--===============================================================================================================-->
+        <Attribute Name="transX" PrettyName="TranslateX" Group="Transform Translate" Type="float" Min="0" Max="100" Logarithmic="1">0</Attribute>
+        <Attribute Name="transY" PrettyName="TranslateY" Group="Transform Translate" Type="float" Min="0" Max="100" Logarithmic="1">0</Attribute>
+        <Attribute Name="transZ" PrettyName="TranslateZ" Group="Transform Translate" Type="float" Min="0" Max="100" Logarithmic="1">0</Attribute>
+        <!--===============================================================================================================-->
+    </Attributes>
+    <Contexts>
+        <Context Type="GLSL">
+            <Shader>
+                <Inputs>
+                    <Input Name="Input"><Default>vec4(1,1,1,1)</Default></Input>
+                </Inputs>
+                <Body><![CDATA[
+
+                // compensate for scene size by applying eponential growth
+                float freq_pow = (pow($frequency,$frequency)-1.0) + 0.01;
+
+                // 3d space surface position
+                // build the needed vector attributes for position transform, offset max growths exponentially
+                vec3 trans = (vec3($transX,$transY,$transZ)*freq_pow) + vec3($Seed);
+                vec3 rotate = vec3($rotateX,$rotateY,$rotateZ);
+                vec3 scale = vec3($scaleX,$scaleY,$scaleZ);
+
+                // transform the position to translate,rotate,scale the position
+                vec3 P = positionTransform(State.Position,trans,rotate,scale) / freq_pow;
+
+                // 2d uv space surface position
+                // build the needed vector attributes for position transform, offset max growths exponentially
+                vec2 UVOffset = vec2($transX,$transY) + vec2($Seed);
+                vec2 UVScale = vec2($scaleX,$scaleY);
+
+                // transform the position to translate,rotate,scale the position
+                vec2 InputScaleUV = relUVTransform(State.UV,$rotateZ,UVOffset,UVScale,0.5,0.5)/ (freq_pow);
+
+                // blend between 2d and 3d space position
+                P = mix(P,vec3(InputScaleUV,1.0),float($uv));
+
+                // perlin noise function
+                Output = DT3D_InigoNoise(P,$colorA,$colorB,$frequency,$octaves,$lacunarity,1.0-$gain,$threshold,$invert);
+
+                ]]></Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>

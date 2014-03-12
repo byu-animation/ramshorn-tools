@@ -1,0 +1,79 @@
+<Node>
+    <ID>Falloff Map</ID>
+    <Category>Environment/Custom/</Category>
+    <Cost>0.01</Cost>
+    <CostDescription>Some calculations</CostDescription>
+    <Attributes>
+        <Attribute Name="FrontColor" PrettyName="Front Color" Group="Falloff Parameters" Type="color" Description="Defines the color of the Normals that are facing the camera">(0.0,0.0,0.0,1)</Attribute>
+        <Attribute Name="SideColor" PrettyName="Side Color" Group="Falloff Parameters" Type="color" Description="Defines the color of the Normals that are look at 90º in relation to the viewing angle">(1.0,1.0,1.0,1)</Attribute>
+        <Attribute Name="FalloffStart" PrettyName="Falloff Start" Group="Falloff Parameters" Type="double" Description="Adjust where the falloff start. 1 it makes starts where the normals face the camera, while 0 means towards the edge." Min="0" Max="1">0</Attribute>
+        <Attribute Name="FalloffEnd" PrettyName="Falloff End" Group="Falloff Parameters" Type="double" Description="Adjust where the falloff end. 1 it makes starts where the normals face the camera, while 0 means towards the edge." Min="0" Max="1">1</Attribute>
+        <Attribute Name="FalloffType" PrettyName="Falloff Type" Group="Falloff Parameters" Type="userenum" Description="Chooses the kind of falloff. This are based on 3DS Max Falloff Map node.">0, 0,1,2, Facing Ratio, Shadow/Light, Distance Blend</Attribute>
+    </Attributes>
+    <Tags>
+        <Tag>_notcacheable</Tag>
+        <Tag>_notbakeable</Tag>
+    </Tags>
+    <Contexts>
+        <Context Type='NodeGraphView'>
+        </Context>
+            <Context Type='GLSL'>
+            <Shader ShaderType='Fragment'>
+                <Body>
+                <![CDATA[
+
+                vec4 Blend  = vec4 (0.0);
+
+                // Facing Ratio Mode
+                if ($FalloffType == 0)
+                {
+                    float VdotN = dot(State.ViewVectorInEyeSpaceFromViewCamera, State.NormalInEyeSpaceFromViewCamera);
+                    float Fresnel = clamp((abs(VdotN) - $FalloffStart) / ($FalloffEnd - $FalloffStart), 0.0, 1.0);
+                    Blend  = mix($FrontColor, $SideColor, 1-Fresnel);
+                    if ($FalloffStart > 0.5)
+                    {
+                        Blend = ($FalloffStart == $FalloffEnd) ? $SideColor : mix($FrontColor, $SideColor, 1-Fresnel);
+                    }
+                    if ($FalloffStart < 0.5)
+                    {
+                        Blend = ($FalloffStart == $FalloffEnd) ? $FrontColor : mix($FrontColor, $SideColor, 1-Fresnel);
+                    }
+                }
+
+                // Shadow/Light Mode
+                if ($FalloffType == 1)
+                {
+                    #if defined MRI_SHADER_FRAGMENT || defined MRI_SHADER_TESS_EVALUATION
+                    int numLights = 0;
+                    for(int i=0;i<4;i++)
+                    {
+                        float lightVisibility = mriLightVisibility( i, State.Position);
+                        if (lightVisibility == 1)
+                        {
+                            numLights += 1;
+                        }
+                        vec3 L = normalize(u_MriLightSources[i].Position.xyz - State.FragmentPositionInEyeSpaceFromViewCamera);
+                        float NdotL = dot(State.Normal, L);
+                        float Fresnel = clamp((abs(NdotL*lightVisibility) - $FalloffStart) / ($FalloffEnd - $FalloffStart), 0.0, 1.0);
+                        Blend += mix($FrontColor, $SideColor, 1-Fresnel);
+                    }
+                    Blend /= numLights;
+                    #endif
+                }
+
+                // Distance Blend Mode
+                if ($FalloffType == 2)
+                {
+                    float Fresnel = clamp((abs(gl_FragDepth) - $FalloffStart) / ($FalloffEnd - $FalloffStart), 0.0, 1.0);
+                    Blend = mix($FrontColor, $SideColor, 1-Fresnel );
+                }
+
+                Output = Blend;
+                ]]>
+                </Body>
+            </Shader>
+        </Context>
+    </Contexts>
+</Node>
+
+
