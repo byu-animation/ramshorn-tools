@@ -252,7 +252,8 @@ def checkout(node):
             print str(e)
             myCheckout = amu.checkedOutByMe(toCheckout)
             if not myCheckout:
-                hou.ui.displayMessage('Can Not Checkout.')
+                # hou.ui.displayMessage('Can Not Checkout. Locked by')
+                getInfo(node, 'Asset Locked')
                 return
             else:
                 destpath = amu.getCheckoutDest(toCheckout)
@@ -460,7 +461,7 @@ def add(node = None):
 
 # convert_texture(userTextureMap, assetImageDir, folder_name='') and newTexture() moved to texture_update_methods.py
 
-def getInfo(node):
+def getInfo(node, window_title='Node Info'):
     if node == None:
         # code for getting info from the checked out scene file goes here
         sys.stderr.write('Code for shot info does not yet exist for Houdini!')
@@ -479,7 +480,7 @@ def getInfo(node):
         else:
             message = 'Not Checked out.\n'
         message = message+'Last checked in by '+nodeInfo[3]
-        hou.ui.displayMessage(message, title='Node Info')
+        hou.ui.displayMessage(message, title=window_title)
 
 def passwordWindow(password, wtitle='Enter Password', wmessage='Enter Password', wlabel='Password'):
     '''Pop up a window with a text window to enter a password into
