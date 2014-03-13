@@ -207,7 +207,7 @@ def installGeometry(path=''):
 	print 'Copying '+srcABC+' to '+destABC
 	try:
 		os.system('chmod 774 -R '+srcABC)
-		os.system('cp -rf '+srcABC+' '+destABC)
+		os.system('mv -f '+srcABC+' '+destABC)
 		# shutil.copytree(src=srcABC, dst=destABC)
 	except Exception as e:
 		print e
