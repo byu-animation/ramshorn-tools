@@ -115,6 +115,7 @@ buildProjectDirs()
         echo "making user dir"
         mkdir -p "$USER_DIR"
         mkdir -p "$USER_DIR"/checkout
+        chmod 774 -R "$USER_DIR"
     fi
 
     # Create tmp directory for ifds

@@ -185,8 +185,11 @@ def installGeometry(path=''):
 		shutil.rmtree(destOBJ)
 	if os.path.exists(destBJSON):
 		shutil.rmtree(destBJSON)
-	# if os.path.exists(destABC):
-	# 	shutil.rmtree(destABC)
+	if os.path.exists(destABC):
+		try:
+			shutil.rmtree(destABC)
+		except Exception as e:
+			print 'Couldn\'t delete old abc files.'
 
 	print 'Copying '+srcOBJ+' to '+destOBJ
 	try:
@@ -203,6 +206,7 @@ def installGeometry(path=''):
 	#treat alembic special so we don't mess up concurrent houdini reading . . .
 	print 'Copying '+srcABC+' to '+destABC
 	try:
+		os.system('chmod 774 -R '+srcABC)
 		os.system('cp -rf '+srcABC+' '+destABC)
 		# shutil.copytree(src=srcABC, dst=destABC)
 	except Exception as e:

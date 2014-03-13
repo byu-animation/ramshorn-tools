@@ -1,0 +1,13 @@
+
+[Desktop Entry]
+Version=1.0
+Type=Application
+Terminal=false
+Icon[en_US]=/opt/pixar/RenderManStudio/icons/render_RenderManLight.png
+Name[en_US]=SetPermissions
+Exec=/groups/ramshorn/ramshorn-tools/set_permissions.sh
+Comment[en_US]=Restore Order To Our Pipeline
+Name=SetPermissions
+Comment=Restore Order To Our Pipeline
+Icon=/opt/pixar/RenderManStudio/icons/render_RenderManLight.png
+Comment[en_US.UTF-8]=Restore Order To Our Pipeline
