@@ -11,3 +11,4 @@ for a in "$ASSETS_DIR"/*
 do
     chmod 774 -R "$a"/geo/abcFiles
 done
+echo "FINISHED"
