@@ -15,45 +15,34 @@ import PythonQt.QtGui as gui
 projectName = "MariPipe"
 
 # ------------------------------------------------------------------------------
-def convertToRat(filePathNoExt):
-	args = ['iconvert', '-g', 'off', filePathNoExt + '.png', filePathNoExt + '.rat', 'makemips', 'compression="none"']
-	try:
-		subprocess.check_call(args)
-	except subprocess.CalledProcessError as e:
-		mari.utils.message("Error: " + str(e))
-
-def exportChannel(geo, imgSet, chanName):
-	# Build up a map of (UDIM -> image) pairs
-	images = {}
+def convertToRat(geo, filePathNoUDIM):
 	for patch in geo.patchList():
-		uv_index = patch.uvIndex()
-		image = imgSet.image(uv_index)
-		if image is not None:
-			udim = 1001 + patch.u() + (10 * patch.v())
-			images[udim] = image
+		# Get Patch UDIM numbers
+		udim = 1001 + patch.u() + (10 * patch.v())
 
-	# Export Patches as separate images
-	exportPath = ''
-	for udim, image in images.iteritems():
-		if(len(exportPath) == 0):
-			lastExportPath = image.lastExportPath()
-			dirSlashes = [m.start() for m in re.finditer('/', lastExportPath)]
-			if(len(dirSlashes) > 0):
-				fileNameBegin = dirSlashes[len(dirSlashes) - 1]
-				exportPath = lastExportPath[:fileNameBegin]
-				print "Exporting " + chanName + " channel to " + exportPath
+		# Convert with Houdini iconvert
+		args = ['iconvert', '-g', 'off', filePathNoUDIM + '_' + str(udim) + '.png', filePathNoUDIM + '_' + str(udim) + '.rat', 'makemips', 'compression="none"']
+		try:
+			subprocess.check_call(args)
+		except subprocess.CalledProcessError as e:
+			mari.utils.message("Error: " + str(e))
 
-		fileName = '%s_%s_%d' % (geo.name(), chanName, udim)
-		fileExt = '.png'
+def exportChannel(geo, channel):
+	# Set the template for the file name
+	fileName = '$ENTITY_$CHANNEL_$UDIM'
+	fileExt = '.png'
 
-		if(len(exportPath) == 0):
-			exportPath = mari.utils.getExistingDirectory(None, 'Select Map Export Path for \"' + fileName + '.rat\"')
-			if(len(exportPath) == 0):
-				break
+	# Prompt user for destination directory
+	exportPath = mari.utils.getExistingDirectory(None, 'Select Map Export Path for \"' + channel.name() + '\"')
+	if(len(exportPath) == 0):
+		return
 
-		fullFilePath = exportPath + '/' + fileName + fileExt
-		image.saveAs(fullFilePath)
-		convertToRat(exportPath + '/' + fileName)
+	# Save all images as PNG
+	fullFilePath = exportPath + '/' + fileName + fileExt
+	channel.exportImagesFlattened(fullFilePath, mari.Image.DISABLE_SMALL_UNIFORMS)
+
+	# Convert to RAT
+	convertToRat(geo, exportPath + '/' + geo.name() + '_' + channel.name())
 
 
 def exportSelectedMaps():
@@ -69,12 +58,13 @@ def exportSelectedMaps():
 	if geo is None:
 		mari.utils.message('Please select an object to export a channels from.')
 
+	# Find the currently selected channel
 	channel = geo.currentChannel()
-	imgSet = geo.currentImageSet()
-	if imgSet is None:
+	if channel is None:
 		mari.utils.message('Please select a channel to export.')
 
-	exportChannel(geo, imgSet, channel.name())
+	# Export all images in channel
+	exportChannel(geo, channel)
 
 	mari.utils.message('Maps for \"' + channel.name() + '\" successfully exported.')
 
@@ -93,12 +83,10 @@ def exportAllMaps():
 
 	# Get a list of all the channels attached to the current object
 	channels = geo.channelList()
-	imageSets = geo.imageSetList()
-	currentChanInd = 0
 
-	for imgSet in imageSets:
-		exportChannel(geo, imgSet, channels[currentChanInd].name())
-		currentChanInd = (currentChanInd + 1)
+	# Export all images in each channel
+	for chan in channels:
+		exportChannel(geo, chan)
 
 	mari.utils.message('All maps successfully exported.')
 	
