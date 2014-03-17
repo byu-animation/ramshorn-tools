@@ -3,7 +3,7 @@ This module contains functionality to manage the animation project.
 @author: Morgan Strong, Brian Kingery
 """
 
-import os, time, shutil, glob, pwd, tempfile
+import os, time, shutil, glob, pwd, tempfile, smtplib
 from ConfigParser import ConfigParser
 
 def getProjectName():
@@ -653,3 +653,28 @@ def mayaImportAlembicFile(maya_file, abc_file):
 def setFocalLengthMaya(maya_file, focal):
 	setter = os.path.join(os.environ['MAYA_TOOLS_DIR'], 'setFocalLengthMaya.py')
 	os.system(getMayapy()+' '+setter+' '+maya_file+' '+str(focal))
+################################################################################
+# Send Mail
+################################################################################
+def sendmail(subject, text):	
+	TO = ["ramshorn2015@gmail.com"]
+	FROM = "ramshorntools2015@gmail.com"
+	message = """\
+From: %s
+To: %s
+Subject: %s
+
+%s
+""" % (FROM, ", ".join(TO), subject, text)
+	client = smtplib.SMTP("smtp.gmail.com", 587)
+	client.ehlo()
+	client.starttls()
+	client.ehlo()
+	success = True
+	try:
+		client.login("ramshorntools2015@gmail.com", "ramshorn2015")
+		client.sendmail(FROM, TO, message)
+	except smtplib.SMTPAuthenticationError as error:
+		print error
+	client.close()
+	return success

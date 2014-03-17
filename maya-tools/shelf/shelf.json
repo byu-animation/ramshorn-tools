@@ -54,6 +54,11 @@
             "icon":"cam.xpm",
             "annotation":"Make a playblast of your previs or animation file.",
             "python_file":"maya_playblast.py"
+        },
+        {
+			"icon":"garrett.xpm",
+			"annotation":"Submit an asset issue.",
+			"python_file":"maya_issue_form.py"
         }
     ]
 }
