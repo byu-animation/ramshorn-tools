@@ -63,7 +63,7 @@ def isSetAsset(node):
     sets = ('ramshorn_intro_set', 'ramshorn_cliff_set', 'ramshorn_mountain_set', 'ramshorn_gag_set')
     return getAssetName(node) in sets
 
-def writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', startFrame=1, endFrame=240, stepSize=1):
+def writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', startFrame=1, endFrame=240, stepSize=1, format='hdf5'):
     if not os.path.exists(outDir):
         os.makedirs(outDir)
 
@@ -81,6 +81,7 @@ def writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', star
     parms['filename'] = abcFilePath
     parms['root'] = rootObject.path()
     parms['objects'] = objects
+    parms['format'] = format
     abcROP.setParms(parms)
 
     # Render ROP

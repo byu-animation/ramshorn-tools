@@ -67,7 +67,7 @@ def abcExport(selected, path):
 		abcFile = formatFilename(abcFile)
 		abcFilePath = os.path.join(path, abcFile)
 		print abcFilePath
-		command = "AbcExport -j \"-frameRange 1 1 -root "+parent_geo+" -file "+abcFilePath+"\";"
+		command = "AbcExport -j \"-frameRange 1 1 -root "+parent_geo+" -nn -uv -file "+abcFilePath+"\";"
 		print command
 		Mel.eval(command)
 		abcfiles.append(abcFilePath)
@@ -185,8 +185,11 @@ def installGeometry(path=''):
 		shutil.rmtree(destOBJ)
 	if os.path.exists(destBJSON):
 		shutil.rmtree(destBJSON)
-	# if os.path.exists(destABC):
-	# 	shutil.rmtree(destABC)
+	if os.path.exists(destABC):
+		try:
+			shutil.rmtree(destABC)
+		except Exception as e:
+			print 'Couldn\'t delete old abc files.'
 
 	print 'Copying '+srcOBJ+' to '+destOBJ
 	try:
@@ -203,7 +206,8 @@ def installGeometry(path=''):
 	#treat alembic special so we don't mess up concurrent houdini reading . . .
 	print 'Copying '+srcABC+' to '+destABC
 	try:
-		os.system('cp -rf '+srcABC+' '+destABC)
+		os.system('chmod 774 -R '+srcABC)
+		os.system('mv -f '+srcABC+' '+destABC)
 		# shutil.copytree(src=srcABC, dst=destABC)
 	except Exception as e:
 		print e
