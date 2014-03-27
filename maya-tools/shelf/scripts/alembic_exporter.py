@@ -81,7 +81,7 @@ class AlembicExportDialog(QDialog):
 			try:
 				if cmds.referenceQuery(ref, isLoaded=True):
 					loaded.append(ref)
-			except Exception e:
+			except:
 				print "Warning: " + ref + " was not associated with a reference file"
 		return loaded
 	
