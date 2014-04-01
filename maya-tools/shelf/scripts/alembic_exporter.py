@@ -77,9 +77,12 @@ class AlembicExportDialog(QDialog):
 		loaded=[]
 		print "Loaded References: "
 		for ref in references:
-			print type(ref)
-			if cmds.referenceQuery(ref, isLoaded=True):
-				loaded.append(ref)
+			print "Checking status of " + ref
+			try:
+				if cmds.referenceQuery(ref, isLoaded=True):
+					loaded.append(ref)
+			except:
+				print "Warning: " + ref + " was not associated with a reference file"
 		return loaded
 	
 	

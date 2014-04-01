@@ -179,7 +179,7 @@ def installGeometry(path=''):
 	srcABC = os.path.join(path, 'geo/abcFiles')
 	destOBJ = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/objFiles')
 	destBJSON = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/bjsonFiles')
-	destABC = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/')
+	destABC = os.path.join(os.environ['ASSETS_DIR'], assetName, 'geo/abcFiles')
 
 	if os.path.exists(destOBJ):
 		shutil.rmtree(destOBJ)
@@ -189,6 +189,7 @@ def installGeometry(path=''):
 		try:
 			shutil.rmtree(destABC)
 		except Exception as e:
+			print e
 			print 'Couldn\'t delete old abc files.'
 
 	print 'Copying '+srcOBJ+' to '+destOBJ
@@ -204,10 +205,14 @@ def installGeometry(path=''):
 		print e
 
 	#treat alembic special so we don't mess up concurrent houdini reading . . .
+	srcABC = os.path.join(srcABC, '*');
+	if not os.path.exists(destABC):
+		os.mkdir(destABC);
 	print 'Copying '+srcABC+' to '+destABC
 	try:
 		os.system('chmod 774 -R '+srcABC)
-		os.system('mv -f '+srcABC+' '+destABC)
+		result = os.system('mv -f '+srcABC+' '+destABC)
+		print result
 		# shutil.copytree(src=srcABC, dst=destABC)
 	except Exception as e:
 		print e
