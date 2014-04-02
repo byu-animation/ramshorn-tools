@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<shelfDocument>
+  <!-- This file contains definitions of shelves, toolbars, and tools.
+ It should not be hand-edited when it is being used by the application.
+ Note, that two definitions of the same element are not allowed in
+ a single file. -->
+
+  <tool name="lightingRender" label="Lighting Render" icon="PLASMA_App">
+    <helpText><![CDATA[Updates the composite view with a gamma-corrected greyscale version of the last frame rendered.]]></helpText>
+    <script scriptType="python"><![CDATA[import os
+import hou
+
+out = hou.node("/out")
+
+# Check for render node, if it doesn't exist create it
+lightingRender = out.node("LightingRender")
+if lightingRender is None:
+    out.createNode("ramshorn_lighting_render", "LightingRender")
+
+lightingRender.render()
+]]></script>
+  </tool>
+</shelfDocument>
