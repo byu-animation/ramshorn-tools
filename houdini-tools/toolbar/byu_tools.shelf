@@ -16,5 +16,6 @@
     <memberTool name="issue_submit"/>
     <memberTool name="rename"/>
     <memberTool name="delete"/>
+    <memberTool name="lightingRender"/>
   </toolshelf>
 </shelfDocument>

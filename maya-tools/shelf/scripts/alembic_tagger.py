@@ -6,6 +6,7 @@ def tagGeo():
 	if(showConfirmationPopup(selected_groups)):
 		for obj in selected_groups:
 			if not obj.hasAttr("BYU_Alembic_Export_Flag"):
+				cmds.lockNode(str(obj), l=False) # node must be unlocked to add an attribute
 				obj.addAttr("BYU_Alembic_Export_Flag", dv=True, at=bool, h=False, k=True)
 		showSuccessPopup()
 
