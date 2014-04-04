@@ -140,8 +140,8 @@ class AlembicExportDialog(QDialog):
 
 		roots_string = ""
 		roots_string = " ".join([roots_string, "-root %s"%(tagged.name())])
-		start_frame = playbackOptions(q=1, minTime=True) - 5
-		end_frame = playbackOptions(q=1, maxTime=True) + 5
+		start_frame = cmds.playbackOptions(q=1, animationStartTime=True) - 5
+		end_frame = cmds.playbackOptions(q=1, animationEndTime=True) + 5
 		command = 'AbcExport -j "%s -frameRange %s %s -step 0.25 -writeVisibility -nn -uv -file %s"'%(roots_string, str(start_frame), str(end_frame), abcfilepath)
 		return command
 
