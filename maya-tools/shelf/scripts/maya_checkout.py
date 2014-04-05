@@ -223,7 +223,9 @@ class CheckoutDialog(QDialog):
 			if self.showConfirmUnlockDialog() == 'No':
 				return
 			
-			cmd.file(save=True, force=True)
+			if cmd.file(q=True, sceneName=True) != "":
+				cmd.file(save=True, force=True)
+
 			cmd.file(force=True, new=True) #open new file
 			amu.unlock(toUnlock)
 			self.showUnlockedDialog()	
