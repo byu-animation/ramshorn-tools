@@ -54,6 +54,11 @@
             "icon":"cam.xpm",
             "annotation":"Make a playblast of your previs or animation file.",
             "python_file":"maya_playblast.py"
+        },
+        {
+            "icon":"delete.xpm",
+            "annotation":"Rename or Delete shots or Copy animation to previs",
+            "python_file":"maya_edit_shot.py"
         }
     ]
 }
