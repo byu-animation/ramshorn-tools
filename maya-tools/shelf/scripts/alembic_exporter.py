@@ -147,8 +147,11 @@ class AlembicExportDialog(QDialog):
 
 	def get_tagged_node(self, ref):
 		refNodes = cmds.referenceQuery(unicode(ref), nodes=True)
-		rootNode = ls(refNodes[0])
-		taggedNode = self.search_children(rootNode[0])
+		for node in refNodes:
+			rootNode = ls(node)
+			taggedNode = self.search_children(rootNode[0])
+			if taggedNode != "":
+				break
 
 		if taggedNode == "":
 			self.showNoTagFoundDialog(unicode(ref))
