@@ -15,7 +15,7 @@ out = hou.node("/out")
 # Check for render node, if it doesn't exist create it
 lightingRender = out.node("LightingRender")
 if lightingRender is None:
-    out.createNode("ramshorn_lighting_render", "LightingRender")
+    lightingRender = out.createNode("ramshorn_lighting_render", "LightingRender")
 
 lightingRender.render()
 ]]></script>
