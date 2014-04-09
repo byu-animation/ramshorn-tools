@@ -17,7 +17,4 @@ def resetColorDefaults():
 
 resetColorDefaults()
 
-# def testColorDef():
-# 	print "Color! Whee!"
-
-# signal.signal(mari.projects.opened, testColorDef)
+mari.utils.signal_helpers.connect(mari.projects.opened, resetColorDefaults)
