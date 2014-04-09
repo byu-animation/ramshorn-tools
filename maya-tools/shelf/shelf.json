@@ -56,6 +56,11 @@
             "python_file":"maya_playblast.py"
         },
         {
+			"icon":"garrett.xpm",
+			"annotation":"Submit an asset issue.",
+			"python_file":"maya_issue_form.py"
+        },
+        {
             "icon":"delete.xpm",
             "annotation":"Rename or Delete shots or Copy animation to previs",
             "python_file":"maya_edit_shot.py"

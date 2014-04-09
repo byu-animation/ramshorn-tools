@@ -1,22 +1,6 @@
 import sys, os, glob
 import utilities as amu
 import nuke
-#from common_Nuke import *
-
-def checkin():
-	save = nuke.scriptSave()
-	if save==True:
-		toCheckin = get_checkin_path()
-		if can_checkin():
-			amu.setComment(toCheckin, 'comment')
-			dest = amu.checkin(toCheckin)
-			nuke.message('Checkin Successful!')
-			nuke.scriptClose()
-		else:
-			nuke.message('Can not check in')
-
-def go():
-	checkin()
 
 def get_file_path():
     return nuke.callbacks.filenameFilter( nuke.root().name())
@@ -30,5 +14,5 @@ def get_checkin_path():
 
 def can_checkin():
 	toCheckin = get_checkin_path()
-	#nuke.message(toCheckin)
+	nuke.message(toCheckin)
 	return amu.canCheckin(toCheckin)
