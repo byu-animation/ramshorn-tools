@@ -567,6 +567,43 @@ def checkin(toCheckin):
 
 	return chkInDest
 
+def previsToAnim(name):
+	previs_path = os.path.join(os.environ['PREVIS_DIR'], name, 'animation')
+	anim_path = os.path.join(os.environ['SHOTS_DIR'], name, 'animation')
+	print previs_path
+	print anim_path
+	#no such animation file exists!
+	if not os.path.exists(anim_path):
+		createNewShotFolders(os.environ['SHOTS_DIR'], name)
+	previs_cfg = ConfigParser()
+	anim_cfg = ConfigParser()
+	previs_cfg.read(os.path.join(previs_path, ".nodeInfo"))
+	print os.path.join(previs_path, ".nodeInfo")
+	previs_version = previs_cfg.getint("Versioning", "latestversion")
+	anim_cfg.read(os.path.join(anim_path, ".nodeInfo"))
+	print os.path.join(anim_path, ".nodeInfo")
+	anim_version = anim_cfg.getint("Versioning", "latestversion")
+	if anim_cfg.getboolean("Versioning", "locked"):
+		return False
+	previs_filepath = os.path.join(previs_path, "src", 'v'+"%03d" % previs_version)
+	previs_filepath = os.path.join(previs_filepath, name+'_animation.mb')
+	anim_filepath = os.path.join(anim_path, "src", 'v'+"%03d" % (anim_version+1))
+	os.mkdir(anim_filepath)
+	anim_filepath = os.path.join(anim_filepath, name+'_animation.mb')
+	shutil.copyfile(previs_filepath, anim_filepath)
+	
+	#write out new animation info
+	timestamp = time.strftime("%a, %d %b %Y %I:%M:%S %p", time.localtime())
+	user = getUsername()
+	comment = 'copy previs file'
+	anim_cfg.set("Versioning", "lastcheckintime", timestamp)
+	anim_cfg.set("Versioning", "lastcheckinuser", user)
+	anim_cfg.set("Versioning", "latestversion", str(anim_version+1))
+	commentLine = user + ': ' + timestamp + ': ' + '"' + comment + '"' 
+	anim_cfg.set("Comments", 'v' + "%03d" % (anim_version+1,), commentLine)	
+	_writeConfigFile(os.path.join(anim_path, ".nodeInfo"), anim_cfg)
+	return True
+
 ################################################################################
 # Install
 ################################################################################
