@@ -124,9 +124,9 @@ class CheckoutController:
 				return
 			else:
 				destpath = amu.getCheckoutDest(toCheckout)
-				nuke.message("destpath = " + destpath)
+				#nuke.message("destpath = " + destpath)
 		toOpen = os.path.join(destpath,self.get_filename(toCheckout)+'.nk')
-		nuke.message("toOpen = " + toOpen)
+		#nuke.message("toOpen = " + toOpen)
 		#nuke.scriptClose()
 		if not os.path.exists(toOpen):
 			nuke.scriptNew()
