@@ -7,6 +7,7 @@ import mari
 import random
 import subprocess
 import PythonQt.QtGui as gui
+from ConfigParser import ConfigParser
 
 # ------------------------------------------------------------------------------
 #GLOBALS & ENVIROMENT VARIABLES
@@ -27,18 +28,39 @@ def convertToRat(geo, filePathNoUDIM):
 		except subprocess.CalledProcessError as e:
 			mari.utils.message("Error: " + str(e))
 
+		# Delete the PNG file
+		os.remove(filePathNoUDIM + '_' + str(udim) + '.png')
+
 def exportChannel(geo, channel):
 	# Set the template for the file name
 	fileName = '$ENTITY_$CHANNEL_$UDIM'
 	fileExt = '.png'
 
-	# Prompt user for destination directory
-	exportPath = mari.utils.getExistingDirectory(None, 'Select Map Export Path for \"' + channel.name() + '\"')
-	if(len(exportPath) == 0):
-		return
+	# Check for the project info file 
+	cp = ConfigParser()
+	projPath = mari.current.project().info().projectPath()[:-11]
+	cp.read(os.path.join(projPath, ".projectInfo")) 
+	exportPath = ""
+
+	try:
+		# Try and pull the last export path
+		exportPath = cp.get("FilePaths", "Export")
+	except:
+		# If there was none, Prompt user for destination directory
+		exportPath = mari.utils.getExistingDirectory(None, 'Select Map Export Path for \"' + channel.name() + '\"')
+		if(len(exportPath) == 0):
+			return
+		else:
+			# Save it to a project info file
+			projInfo = ConfigParser()
+			projInfo.add_section("FilePaths")
+			projInfo.set("FilePaths", "Export", exportPath)
+			projInfoFile = open(os.path.join(projPath, ".projectInfo"), "wb")
+			projInfo.write(projInfoFile)
 
 	# Save all images as PNG
 	fullFilePath = exportPath + '/' + fileName + fileExt
+	print fullFilePath
 	channel.exportImagesFlattened(fullFilePath, mari.Image.DISABLE_SMALL_UNIFORMS)
 
 	# Convert to RAT
@@ -83,9 +105,13 @@ def exportAllMaps():
 
 	# Get a list of all the channels attached to the current object
 	channels = geo.channelList()
+	print geo.name()
+	print geo
 
 	# Export all images in each channel
 	for chan in channels:
+		print chan.name()
+		print chan
 		exportChannel(geo, chan)
 
 	mari.utils.message('All maps successfully exported.')
