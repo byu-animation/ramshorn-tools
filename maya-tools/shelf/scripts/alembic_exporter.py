@@ -138,8 +138,16 @@ class AlembicExportDialog(QDialog):
 		if tagged == "":
 			return ""
 
+		depList = self.get_dependancies(ref)
+
 		roots_string = ""
 		roots_string = " ".join([roots_string, "-root %s"%(tagged.name())])
+
+		for dep in depList:
+			depRef = ls(dep)
+			tagged = self.get_tagged_node(depRef[0])
+			roots_string = " ".join([roots_string, "-root %s"%(tagged.name())])
+
 		start_frame = cmds.playbackOptions(q=1, animationStartTime=True) - 5
 		end_frame = cmds.playbackOptions(q=1, animationEndTime=True) + 5
 		command = 'AbcExport -j "%s -frameRange %s %s -step 0.25 -writeVisibility -nn -uv -file %s"'%(roots_string, str(start_frame), str(end_frame), abcfilepath)
@@ -149,7 +157,7 @@ class AlembicExportDialog(QDialog):
 		refNodes = cmds.referenceQuery(unicode(ref), nodes=True)
 		for node in refNodes:
 			rootNode = ls(node)
-			taggedNode = self.search_children(rootNode[0])
+			taggedNode = self.get_tagged_children(rootNode[0])
 			if taggedNode != "":
 				break
 
@@ -160,15 +168,35 @@ class AlembicExportDialog(QDialog):
 		print taggedNode
 		return taggedNode
 
-	def search_children(self, node):
+	def get_tagged_children(self, node):
 		for child in node.listRelatives(c=True):
 			if child.hasAttr("BYU_Alembic_Export_Flag"):
 				return child
 			else:
-				taggedChild = self.search_children(child)
+				taggedChild = self.get_tagged_children(child)
 				if taggedChild != "":
 					return taggedChild
 		return ""
+
+	def get_dependancies(self, ref):
+		refNodes = cmds.referenceQuery(unicode(ref), nodes=True)
+		rootNode = ls(refNodes[0])
+		depList = self.get_dependant_children(rootNode[0])
+
+		return depList
+
+	def get_dependant_children(self, node):
+		depList = []
+		for const in node.listRelatives(ad=True, type="parentConstraint"):
+			par = const.listRelatives(p=True)
+			constNS = par[0].split(':')[0]
+			targetList = cmds.parentConstraint(unicode(const), q=True, tl=True)
+			targetNS = targetList[0].split(':')[0]
+			if constNS != targetNS and targetNS not in depList:
+				depList.append(targetNS + 'RN')
+
+		print depList
+		return depList
 
 	def showNoTagFoundDialog(self, ref):
 		return cmds.confirmDialog( title         = 'No Alembic Tag Found'
