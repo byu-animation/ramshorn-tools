@@ -342,6 +342,7 @@ def rename(node = None):
                             name = formatName(resp[1])
                             newfilename = name.replace(' ', '_')
                             newfilepath = os.path.join(OTLDIR, newfilename+'.otl')
+                            oldfilepath = os.path.join(OTLDIR, oldAssetName+'.otl')
                             if os.path.exists(newfilepath):
                                 hou.ui.displayMessage("Asset by that name already exists. Cannot rename asset.", title='Asset Name', severity=hou.severityType.Error)
                             elif not amu.canRename(assetDirPath, newfilename):
@@ -354,6 +355,17 @@ def rename(node = None):
                                 hou.hda.uninstallFile(oldlibraryPath, change_oplibraries_file=False)
                                 subprocess.check_call( ['rm','-f',oldlibraryPath] )
                                 amu.renameAsset(assetDirPath, newfilename)
+                                
+                                newNodeDir = os.path.join(os.environ['ASSETS_DIR'], newfilename, 'otl')
+                                newStableNode = newfilename + '_otl_stable.otl' 
+                                newOldStableNode = oldAssetName + '_otl_stable.otl' 
+                                newDest = os.path.join(newNodeDir, 'stable', newStableNode)
+                                newOldDest = os.path.join(newNodeDir, 'stable', newOldStableNode)
+                                os.remove(newOldDest)
+                                shutil.move(newfilepath,newDest)
+                                os.symlink(newDest, newfilepath)
+
+                                
                 else:
                     logname, realname = amu.lockedBy(info[0].encode('utf-8'))
                     whoLocked = 'User Name: ' + logname + '\nReal Name: ' + realname + '\n'
