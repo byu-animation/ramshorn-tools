@@ -17,5 +17,6 @@
     <memberTool name="rename"/>
     <memberTool name="delete"/>
     <memberTool name="lightingRender"/>
+    <memberTool name="tractor"/>
   </toolshelf>
 </shelfDocument>

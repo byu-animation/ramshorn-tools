@@ -17,6 +17,7 @@
     <memberToolshelf name="autorigs"/>
     <memberToolshelf name="animation"/>
     <memberToolshelf name="tdtools"/>
+    <memberToolshelf name="cloud"/>
   </shelfSet>
 
   <shelfSet name="shelf_set_td" label="Technical Director">
