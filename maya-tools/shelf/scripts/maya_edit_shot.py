@@ -1,5 +1,6 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from ConfigParser import ConfigParser
 
 import maya.cmds as cmd
 import maya.OpenMayaUI as omu
@@ -51,6 +52,9 @@ class CheckoutContext:
         item = QListWidgetItem(name)
         item.setText(name)
         self.tree.addItem(item)
+
+    def take_item(self, index):
+	self.tree.takeItem(index);
 
     def search(self, key):
         # cache the old search key, so we don't perform unnecessary re-filtering
@@ -154,6 +158,7 @@ class EditShotDialog(QDialog):
     def refresh(self):
         # set the new context
         self.context = self.contexts[self.context_tabs.currentIndex()]
+
         # apply search filtering
         self.search(self.search_bar.text())
         # toggles the "New" button
@@ -228,11 +233,160 @@ class EditShotDialog(QDialog):
         self.asset_info_label.setText(checkout_str+checkin_str)
     
     def delete(self):
-        print 'not implemented!'
+        print 'The delete function is not complete yet!'
+	if not (self.current_item is None):
+		currentlySelected = self.current_item.text();
+		print 'currentlySelected:' + currentlySelected;
+		password = cmd.promptDialog(
+			    title='Delete password check',
+			    message='Enter password:',
+			    button=['OK','Cancel'],
+			    defaultButton='OK',
+			    dismissString='Cancel',
+			sf = False);
+		if password == 'OK':
+			if (cmd.promptDialog(query=True, text=True) == 'd3l3t3p@ssw0rd'):
+				newMessage = str('Are you sure you want to delete <' + currentlySelected + '> ?');
+				confirm = cmd.confirmDialog(
+					title='Confirm delete',
+					message=newMessage,
+					button=['Yes', 'No'],
+					defaultButton='Yes',
+					cancelButton='No',
+					dismissString='No')
+				if (confirm == 'Yes'):
+					currentlySelected = self.current_item.text();
+					print 'currentlySelected:' + currentlySelected;
+					dirPath = '';
+					if self.context_tabs.currentIndex() == 1:
+						dirPath = amu.getProductionDir() + '/previs/' + currentlySelected;
+					else:
+						dirPath = amu.getProductionDir() + '/shots/' + currentlySelected;
+					amu.removeFolder(str(dirPath));
+
+					# refresh context
+					tempContext = self.contexts[self.context_tabs.currentIndex()];
+					tempContext.take_item(tempContext.tree.currentRow());
+			else:
+				newMessage = str('Wrong password. Did not delete shot <' + currentlySelected + '>');
+				cmd.confirmDialog(
+					title='Cancelled delete',
+					message=newMessage,
+					button=['Yes'],
+					defaultButton='Yes',
+					cancelButton='Yes',
+					dismissString='Yes')
     
     def rename(self):
-        print 'not implemented!'
-    
+        print 'The rename function is not complete yet!';
+	if not (self.current_item is None):
+		currentlySelected = self.current_item.text()
+		print 'currentlySelected:' + currentlySelected;
+		dirPath = '';
+		if self.context_tabs.currentIndex() == 1:
+			dirPath = amu.getProductionDir() + '/previs/';
+		else:
+			dirPath = amu.getProductionDir() + '/shots/';
+
+		coPath = dirPath + currentlySelected + '/animation';
+		coPath = str(coPath);
+		print 'coPath: ' + coPath;
+		if not amu.isVersionedFolder(coPath):
+			raise Exception("Not a versioned folder.");
+
+		nodeInfo = ConfigParser();
+		nodeInfo.read(os.path.join(coPath, ".nodeInfo"));
+		if nodeInfo.get("Versioning", "locked") == "False":
+			password = cmd.promptDialog(
+				    title='Rename password check',
+				    message='Enter password:',
+				    button=['OK','Cancel'],
+				    defaultButton='OK',
+				    dismissString='Cancel',
+				sf = False);
+			if password == 'OK':
+				if (cmd.promptDialog(query=True, text=True) == 'r3n@m3p@ssw0rd'):
+					confirm = cmd.promptDialog(
+						    title='Rename',
+						    message='What would you like to rename the file?',
+						    button=['OK','Cancel'],
+						    defaultButton='OK',
+						    dismissString='Cancel',
+						sf = False);
+					if confirm == 'OK':
+						newName = cmd.promptDialog(query=True, text=True);
+						print newName;
+						
+
+						#check if the newName is already used by another shot
+						newNameTaken = False;
+						shots = os.listdir(dirPath);
+						for s in shots:
+							print 'shot: ' + s;
+							if (s == newName):
+								newNameTaken = True;
+								print 'Name <' + s + '> is already taken';
+						if not newNameTaken:
+							dirPath = dirPath + currentlySelected;
+					
+							#check /animation folder
+							animDirPath = str(dirPath + '/animation');
+							if amu.canRename(animDirPath):
+								print 'anim rename';
+								''' The renameVersionedFiles() method only searches for *.mb files.
+								If other types of files need to be changed, just copy the code from
+								the renameVersionedFiles() method in asset_manager/utilities.py and
+								change the file extension from *.mb to whatever files type you need.'''
+								renameFiles(self, animDirPath, currentlySelected, newName);
+
+							#check /compositing folder
+							compDirPath = str(dirPath + '/compositing');
+							if amu.canRename(compDirPath):
+								print 'comp rename';
+								renameFiles(self, compDirPath, currentlySelected, newName);
+
+							#check /lighting folder
+							lightDirPath = str(dirPath + '/lighting');
+							if amu.canRename(lightDirPath):
+								print 'lighting rename' ;
+								renameFiles(self, lightDirPath, currentlySelected, newName);
+							print 'dirPath: ' + dirPath;
+							amu.renameFolder(str(dirPath), newName);
+
+							# refresh context
+							tempContext = self.contexts[self.context_tabs.currentIndex()];
+							tempContext.take_item(tempContext.tree.currentRow());
+							tempContext.add_item(newName);
+						else:
+							newMessage = str('The name <' + newName + '> is already taken. Did not rename.');
+							cmd.confirmDialog(
+								title='Cancelled rename',
+								message=newMessage,
+								button=['Yes'],
+								defaultButton='Yes',
+								cancelButton='Yes',
+								dismissString='Yes')
+					else:
+						return;
+				else:
+					newMessage = str('Wrong password. Did not rename shot <' + currentlySelected + '>');
+					cmd.confirmDialog(
+						title='Cancelled rename',
+						message=newMessage,
+						button=['Yes'],
+						defaultButton='Yes',
+						cancelButton='Yes',
+						dismissString='Yes')
+		else:
+			newMessage = str('Part is currently checked out. Did not rename shot <' + currentlySelected + '>');
+			cmd.confirmDialog(
+				title='Cancelled rename',
+				message=newMessage,
+				button=['Yes'],
+				defaultButton='Yes',
+				cancelButton='Yes',
+				dismissString='Yes')
+
     def copy(self):
         name = str(self.current_item.text())
         if not name:
@@ -243,6 +397,15 @@ class EditShotDialog(QDialog):
             return
         self.close_dialog()
         self.showSuccessDialog("previs was successfuly copied to animation for shot "+name)
+
+def renameFiles(self, vDirPath, oldName, newName):
+	src = glob.glob(os.path.join(vDirPath, 'src', '*', '*.*'))
+	stable = glob.glob(os.path.join(vDirPath, 'stable', '*', '*.*'))
+	stable = stable+glob.glob(os.path.join(vDirPath, 'stable', '*.*'))
+	for s in src+stable:
+		head, tail = os.path.split(s)
+		dest = os.path.join(head, newName+tail.split(oldName)[1])
+		os.renames(s, dest)
         
 def go():
     dialog = EditShotDialog()
