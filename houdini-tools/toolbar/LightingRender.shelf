@@ -7,17 +7,37 @@
 
   <tool name="lightingRender" label="Lighting Render" icon="PLASMA_App">
     <helpText><![CDATA[Updates the composite view with a gamma-corrected greyscale version of the last frame rendered.]]></helpText>
-    <script scriptType="python"><![CDATA[import os
+    <script scriptType="python"><![CDATA[import subprocess
+import os
 import hou
+import time
 
-out = hou.node("/out")
+maxWaitTime = 10
 
-# Check for render node, if it doesn't exist create it
-lightingRender = out.node("LightingRender")
-if lightingRender is None:
-    lightingRender = out.createNode("ramshorn_lighting_render", "LightingRender")
+def preLightingRender():
 
-lightingRender.render()
-]]></script>
+    # Ensure camera exists
+    camType = hou.nodeType(hou.objNodeTypeCategory(), "cam")
+    cameras = camType.instances()
+    num = len(cameras)
+    if num is not 1:
+        out = hou.node("/out")
+    
+        # Check for render node, if it doesn't exist create it
+        lightingRender = out.node("LightingRender")
+        if lightingRender is None:
+            lightingRender = out.createNode("ramshorn_lighting_render", "LightingRender")
+
+        scene = hou.ui.paneTabOfType(hou.paneTabType.SceneViewer)
+	if scene is not None:
+            scene.setIsCurrentTab()
+        else:
+            hou.ui.displayMessage("For this to work, you need a scene view")
+
+        lightingRender.render()
+    else:
+        hou.ui.displayMessage("You need a camera in the scene to be able to render.")
+
+preLightingRender()]]></script>
   </tool>
 </shelfDocument>
