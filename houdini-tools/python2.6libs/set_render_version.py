@@ -50,6 +50,7 @@ def get_output_path(shot):
 
 #to be called from a mantra node in houdini
 me = hou.pwd()
-shot = me.parm('shot').eval()
+shot = me.parm('shot').evalAsString()
+print 'shot_: '+str(shot)
 path = get_output_path(shot)
 me.parm('vm_picture').set(path)
