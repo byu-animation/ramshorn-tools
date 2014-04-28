@@ -16,7 +16,7 @@ def set_version(filepath):
     length = len(versions)
     if length > 0:
         latest = versions[-1]
-        index = 1
+        index = 0
         v = os.path.basename(latest)
         # make sure it is a versioned folder
         while  not re.match('v[0-9]+', v) and index < length:
@@ -37,5 +37,18 @@ def set_version(filepath):
 
     os.mkdir(latest)
     return latest
-    
-print set_version("version_render")
+
+'''
+returns the correct Houdini render output path for the shot
+'''
+def get_output_path(shot):
+    path = os.path.join(os.environ['SHOTS_DIR'], shot, 'renders/lighting')
+    path = set_version(path)
+    path = path.replace(os.environ['JOB'], '$JOB')
+    name = shot+'_$F3.exr'
+    return  os.path.join(path, name)
+
+#to be called from a mantra node in houdini
+path = get_output_path('a03')
+me = hou.pwd()
+me.parm('vm_picture').set(path)
