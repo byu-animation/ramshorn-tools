@@ -155,11 +155,11 @@ class AlembicExportDialog(QDialog):
 
 	def get_tagged_node(self, ref):
 		refNodes = cmds.referenceQuery(unicode(ref), nodes=True)
-		for node in refNodes:
-			rootNode = ls(node)
+		rootNode = ls(refNodes[0])
+		if rootNode[0].hasAttr("BYU_Alembic_Export_Flag"):
+			taggedNode = rootNode[0]
+		else:
 			taggedNode = self.get_tagged_children(rootNode[0])
-			if taggedNode != "":
-				break
 
 		if taggedNode == "":
 			self.showNoTagFoundDialog(unicode(ref))
