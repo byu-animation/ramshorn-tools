@@ -12,8 +12,9 @@ def set_version(filepath):
     searchpath = os.path.join(filepath, '*')
     files = glob.glob(searchpath)
     versions = [f for f in files if os.path.isdir(f)]
-    versions.sort
+    versions.sort()
     length = len(versions)
+    # print versions
     if length > 0:
         latest = versions[-1]
         index = 0
@@ -21,6 +22,7 @@ def set_version(filepath):
         # make sure it is a versioned folder
         while  not re.match('v[0-9]+', v) and index < length:
             latest = versions[-1-index]
+            print latest
             v = os.path.basename(latest)
             index += 1
         if index < length:
