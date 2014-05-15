@@ -33,7 +33,7 @@ class RollbackDialog(QDialog):
 
         #Create Tag, Select, and Cancel buttons
         self.help_button = QPushButton('Help')
-        self.tag_button = QPushButton('Tag')
+        # self.tag_button = QPushButton('Tag')
         self.checkout_button = QPushButton('Checkout')
         self.cancel_button = QPushButton('Cancel')
 	
@@ -45,7 +45,7 @@ class RollbackDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.setSpacing(2)
         button_layout.addStretch()
-        button_layout.addWidget(self.tag_button)
+        # button_layout.addWidget(self.tag_button)
         button_layout.addWidget(self.checkout_button)
         button_layout.addWidget(self.cancel_button)
 
@@ -84,21 +84,6 @@ class RollbackDialog(QDialog):
             self.selection_list.addItem(item)
         self.selection_list.sortItems(0)
 
-    def get_asset_path(self):
-        # returns the path for a single asset
-        asset_name = str(self.current_item.text())
-        filePath = cmd.file(q=True, sceneName=True)
-        print 'filePath: '+filePath
-        if self.model_radio.isChecked():
-            filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'model')
-        elif self.rig_radio.isChecked():
-            filePath = os.path.join(os.environ['ASSETS_DIR'], asset_name, 'rig')
-        elif self.animation_radio.isChecked():
-            filePath = os.path.join(os.environ['SHOTS_DIR'], asset_name, 'animation')
-        elif self.previs_radio.isChecked():
-            filePath = os.path.join(os.environ['PREVIS_DIR'], asset_name, 'animation')
-        return filePath
-
     def refresh(self):
         filePath = os.path.join(amu.getUserCheckoutDir(), os.path.basename(os.path.dirname(self.ORIGINAL_FILE_NAME)))
         checkInDest = amu.getCheckinDest(filePath)
@@ -117,7 +102,7 @@ class RollbackDialog(QDialog):
     ########################################################################
     def close_dialog(self):
         print self.ORIGINAL_FILE_NAME
-        cmd.file(self.ORIGINAL_FILE_NAME, force=True, open=True)
+        # cmd.file(self.ORIGINAL_FILE_NAME, force=True, open=True)
         self.close()
 
     def set_current_item(self, item):
@@ -134,7 +119,7 @@ class RollbackDialog(QDialog):
 
     def verify_checkout_dialog(self):
         return cmd.confirmDialog(  title           = 'Verify Checkout'
-                                   , message       = 'You are about to checkout an older version of this asset. Once you check it in, it will be saved as the most recent version. Is this what you want?'
+                                   , message       = 'You are about to checkout an older version of this asset. If you have made changes to your currently checked out file, they will be lost.  Is this OK?'
                                    , button        = ['Yes', 'No']
                                    , defaultButton = 'No'
                                    , cancelButton  = 'No'
@@ -142,7 +127,7 @@ class RollbackDialog(QDialog):
 
     def help_dialog(self):
         return cmd.confirmDialog(  title           = 'Help'
-                                   , message       = 'CHECKOUT: Checks out the selected version so you can modify it. when you check it in, it will be saved as the newest version.\n'
+                                   , message       = 'CHECKOUT: Checks out the selected version so you can modify it. when you check it in, it will be saved as the newest version.\n If you have made changes to your currently checked out file, you should check those in first'
                                    , button        = ['Ok']
                                    , defaultButton = 'Ok'
                                    , cancelButton  = 'Ok'

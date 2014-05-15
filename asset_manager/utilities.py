@@ -575,33 +575,68 @@ def previsToAnim(name):
 	#no such animation file exists!
 	if not os.path.exists(anim_path):
 		createNewShotFolders(os.environ['SHOTS_DIR'], name)
-	previs_cfg = ConfigParser()
-	anim_cfg = ConfigParser()
-	previs_cfg.read(os.path.join(previs_path, ".nodeInfo"))
-	print os.path.join(previs_path, ".nodeInfo")
-	previs_version = previs_cfg.getint("Versioning", "latestversion")
-	anim_cfg.read(os.path.join(anim_path, ".nodeInfo"))
-	print os.path.join(anim_path, ".nodeInfo")
-	anim_version = anim_cfg.getint("Versioning", "latestversion")
-	if anim_cfg.getboolean("Versioning", "locked"):
-		return False
-	previs_filepath = os.path.join(previs_path, "src", 'v'+"%03d" % previs_version)
-	previs_filepath = os.path.join(previs_filepath, name+'_animation.mb')
-	anim_filepath = os.path.join(anim_path, "src", 'v'+"%03d" % (anim_version+1))
-	os.mkdir(anim_filepath)
-	anim_filepath = os.path.join(anim_filepath, name+'_animation.mb')
-	shutil.copyfile(previs_filepath, anim_filepath)
+
+	return cloneShot(previs_path, name, anim_path, name)
+	# previs_cfg = ConfigParser()
+	# anim_cfg = ConfigParser()
+	# previs_cfg.read(os.path.join(previs_path, ".nodeInfo"))
+	# print os.path.join(previs_path, ".nodeInfo")
+	# previs_version = previs_cfg.getint("Versioning", "latestversion")
+	# anim_cfg.read(os.path.join(anim_path, ".nodeInfo"))
+	# print os.path.join(anim_path, ".nodeInfo")
+	# anim_version = anim_cfg.getint("Versioning", "latestversion")
+	# if anim_cfg.getboolean("Versioning", "locked"):
+	# 	return False
+	# previs_filepath = os.path.join(previs_path, "src", 'v'+"%03d" % previs_version)
+	# previs_filepath = os.path.join(previs_filepath, name+'_animation.mb')
+	# anim_filepath = os.path.join(anim_path, "src", 'v'+"%03d" % (anim_version+1))
+	# os.mkdir(anim_filepath)
+	# anim_filepath = os.path.join(anim_filepath, name+'_animation.mb')
+	# shutil.copyfile(previs_filepath, anim_filepath)
 	
+	# #write out new animation info
+	# timestamp = time.strftime("%a, %d %b %Y %I:%M:%S %p", time.localtime())
+	# user = getUsername()
+	# comment = 'copy previs file'
+	# anim_cfg.set("Versioning", "lastcheckintime", timestamp)
+	# anim_cfg.set("Versioning", "lastcheckinuser", user)
+	# anim_cfg.set("Versioning", "latestversion", str(anim_version+1))
+	# commentLine = user + ': ' + timestamp + ': ' + '"' + comment + '"' 
+	# anim_cfg.set("Comments", 'v' + "%03d" % (anim_version+1,), commentLine)	
+	# _writeConfigFile(os.path.join(anim_path, ".nodeInfo"), anim_cfg)
+	# return True
+"""
+src and dst must be valid filepaths to a previs or animation shot folder
+src_name and dst_name are the shot names that correspond to the filepaths
+"""
+def cloneShot(src, src_name, dst, dst_name):
+	src_cfg = ConfigParser()
+	dst_cfg = ConfigParser()
+	src_cfg.read(os.path.join(src, ".nodeInfo"))
+	src_version = src_cfg.getint("Versioning", "latestversion")
+	dst_cfg.read(os.path.join(dst, ".nodeInfo"))
+	dst_version = dst_cfg.getint("Versioning", "latestversion")
+	if dst_cfg.getboolean("Versioning", "locked"):
+		return False
+	src_path = os.path.join(src, "src", 'v'+"%03d" % src_version)
+	src_filepath = os.path.join(src_path, src_name+'_animation.mb')
+	print dst_version
+	dst_path = os.path.join(dst, "src", 'v'+"%03d" % (dst_version+1))
+	os.mkdir(dst_path)
+	dst_filepath = os.path.join(dst_path, dst_name+'_animation.mb')
+	print 'copying '+src_filepath+' to '+dst_filepath
+	shutil.copyfile(src_filepath, dst_filepath)
+
 	#write out new animation info
 	timestamp = time.strftime("%a, %d %b %Y %I:%M:%S %p", time.localtime())
 	user = getUsername()
-	comment = 'copy previs file'
-	anim_cfg.set("Versioning", "lastcheckintime", timestamp)
-	anim_cfg.set("Versioning", "lastcheckinuser", user)
-	anim_cfg.set("Versioning", "latestversion", str(anim_version+1))
+	comment = 'copied from '+src_name
+	dst_cfg.set("Versioning", "lastcheckintime", timestamp)
+	dst_cfg.set("Versioning", "lastcheckinuser", user)
+	dst_cfg.set("Versioning", "latestversion", str(dst_version+1))
 	commentLine = user + ': ' + timestamp + ': ' + '"' + comment + '"' 
-	anim_cfg.set("Comments", 'v' + "%03d" % (anim_version+1,), commentLine)	
-	_writeConfigFile(os.path.join(anim_path, ".nodeInfo"), anim_cfg)
+	dst_cfg.set("Comments", 'v' + "%03d" % (dst_version+1,), commentLine)	
+	_writeConfigFile(os.path.join(dst, ".nodeInfo"), dst_cfg)
 	return True
 
 ################################################################################
