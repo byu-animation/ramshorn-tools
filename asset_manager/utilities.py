@@ -239,6 +239,13 @@ def getVersionedFolderInfo(dirPath):
 		nodeInfo.append("")
 	return nodeInfo
 
+def getLatestVersion(dirPath):
+	if not isVersionedFolder(dirPath):
+		raise Exception("Not a versioned folder")
+	cp = ConfigParser()
+	cp.read(os.path.join(dirPath, ".nodeInfo"))
+	return int(cp.get("Versioning", "latestversion"))
+
 def getVersionComment(dirPath, version):
 	if not isVersionedFolder(dirPath):
 		raise Exception("Not a versioned folder")
