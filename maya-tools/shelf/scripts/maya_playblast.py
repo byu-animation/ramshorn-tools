@@ -144,7 +144,8 @@ def go():
     dirName = os.path.dirname(fileName)
     source = amu.getCheckinDest(dirName)
     blastPath = os.path.join(os.path.dirname(source), 'playblasts')
-    name = os.path.join(blastPath, assetName)
+    versionNum = amu.getLatestVersion(source)+1
+    name = os.path.join(blastPath, assetName+"_v"+("%03d" % versionNum))
 
     startFrame = mc.playbackOptions(q=True, min=True)
     endFrame = mc.playbackOptions(q=True, max=True)
