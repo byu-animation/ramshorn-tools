@@ -16,6 +16,11 @@
             "python_file":"maya_checkin.py"
         },
         {
+            "icon":"savebutton.xpm",
+            "annotation":"Version up the current file",
+            "python_file":"maya_save_version.py"
+        },
+        {
             "icon":"Trash.xpm",
             "annotation":"Discard changes and release asset",
             "python_file":"maya_discard.py"
