@@ -194,6 +194,7 @@ class RollbackDialog(QDialog):
                 cmd.file(force=True, new=True)
                 cmd.file(rename=toOpen)
                 cmd.file(save=True, force=True)
+            cmd.file(self.ORIGINAL_FILE_NAME, force=True, open=True)
             self.close_dialog()
 
     def show_version_info(self):
