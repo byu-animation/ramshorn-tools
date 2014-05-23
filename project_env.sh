@@ -124,6 +124,10 @@ buildProjectDirs()
         mkdir -p "$JOB"/tmp/ifds
     fi
 
+    if [ ! -d ~/houdini13.0/dso ]; then
+        mkdir -p ~/houdini13.0/dso
+    fi
+
     cp -u ${PROJECT_TOOLS}/otl_templates/*.otl ${OTLS_DIR}
     cp -u ${PROJECT_TOOLS}/houdini_dso/*.so ~/houdini13.0/dso
 }
