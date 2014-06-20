@@ -3,7 +3,8 @@ from pymel.core import *
 def untagGeo():
 	selected_groups = ls(sl=True, tr=True)
 	print selected_groups
-	if(showConfirmationPopup(selected_groups)):
+	response = showConfirmationPopup(selected_groups)
+	if response == "Yes":
 		for obj in selected_groups:
 			if obj.hasAttr("BYU_Alembic_Export_Flag"):
 				obj.deleteAttr("BYU_Alembic_Export_Flag")
