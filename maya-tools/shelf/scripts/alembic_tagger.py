@@ -3,7 +3,8 @@ from pymel.core import *
 def tagGeo():
 	selected_groups = ls(sl=True, tr=True)
 	print selected_groups
-	if(showConfirmationPopup(selected_groups)):
+	response = showConfirmationPopup(selected_groups)
+	if response == "Yes":
 		for obj in selected_groups:
 			if not obj.hasAttr("BYU_Alembic_Export_Flag"):
 				cmds.lockNode(str(obj), l=False) # node must be unlocked to add an attribute
