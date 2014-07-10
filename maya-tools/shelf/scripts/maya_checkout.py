@@ -218,14 +218,14 @@ class CheckoutDialog(QDialog):
 
 
 	def unlock(self):
-		toUnlock = self.get_asset_path()		
+		print("unlocking!!!!")
+		
+		toUnlock = self.get_asset_path()
 		if amu.isLocked(toUnlock):
 			if self.showConfirmUnlockDialog() == 'No':
 				return
-			
 			if cmd.file(q=True, sceneName=True) != "":
-				cmd.file(save=True, force=True)
-
+				cmd.file(save=True, force=True)	
 			cmd.file(force=True, new=True) #open new file
 			amu.unlock(toUnlock)
 			self.showUnlockedDialog()	
@@ -233,6 +233,7 @@ class CheckoutDialog(QDialog):
 			self.showIsLockedDialog()
 		#Update node info
 		self.show_node_info()
+		
 
 	
 	########################################################################
@@ -244,7 +245,7 @@ class CheckoutDialog(QDialog):
 			cmd.file(save=True, force=True)
 
 		toCheckout = self.get_asset_path()
-
+		
 		try:
 			destpath = amu.checkout(toCheckout, True)
 		except Exception as e:
@@ -261,7 +262,6 @@ class CheckoutDialog(QDialog):
 				destpath = amu.getCheckoutDest(toCheckout)
 
 		toOpen = os.path.join(destpath, self.get_filename(toCheckout)+'.mb')
-		
 		# open the file
 		if os.path.exists(toOpen):
 			cmd.file(toOpen, force=True, open=True)#, loadReferenceDepth="none")
@@ -271,6 +271,7 @@ class CheckoutDialog(QDialog):
 			cmd.file(rename=toOpen)
 			cmd.viewClipPlane('perspShape', ncp=0.01)
 			cmd.file(save=True, force=True)
+		
 		self.close_dialog()
 	
 	def close_dialog(self):
