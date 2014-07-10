@@ -9,7 +9,7 @@ takes a parameter specifying the threshold in days
 author: Jeremy Oborn
 '''
 
-path = '/groups/owned/tmp/ifds/'
+path = '/groups/ramshorn/tmp/ifds/'
 check = '*.ifd'
 if len(sys.argv) < 2:
 	days_old = 7
