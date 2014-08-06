@@ -17,8 +17,9 @@ def buildUI():
 	widgets["formLayout"] = cmds.formLayout(w = 709, h = 651)
 
 	# Add background image of Andre
-	imagePath = "AndrePickerImage.jpg"
-	cmds.image(image = imagePath)
+	imagePath = "/groups/ramshorn/ramshorn-tools/maya-tools/shelf/scripts/AndrePickerImage.jpg"
+	print imagePath
+	cmds.image(image = imagePath, visible = True)
 
 	andre_ns = "ramshorn_andre_rig_stable:"
 
