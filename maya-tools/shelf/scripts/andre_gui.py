@@ -3,8 +3,6 @@ import maya.cmds as cmds
 
 # Andre Picker - basics of this is based off a tutorial by Jeremy Ernst.
 
-print "testing andreGUI"
-
 
 def buildUI():
 
@@ -19,7 +17,7 @@ def buildUI():
 	widgets["formLayout"] = cmds.formLayout(w = 709, h = 651)
 
 	# Add background image of Andre
-	imagePath = cmds.internalVar(upd = True) + "icons/AndrePickerImage.jpg"
+	imagePath = "AndrePickerImage.jpg"
 	cmds.image(image = imagePath)
 
 	andre_ns = "ramshorn_andre_rig_stable:"
