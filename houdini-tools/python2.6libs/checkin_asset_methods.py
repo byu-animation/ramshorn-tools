@@ -60,7 +60,7 @@ def isCameraAsset(node):
     return 'cameras' in node.name()
 
 def isSetAsset(node):
-    sets = ('ramshorn_intro_set', 'ramshorn_cliff_set', 'ramshorn_mountain_set', 'ramshorn_gag_set' 'ramshorn_ground_set')
+    sets = ('ramshorn_intro_set', 'ramshorn_cliff_set', 'ramshorn_mountain_set', 'ramshorn_gag_set', 'ramshorn_ground_set')
     return getAssetName(node) in sets
 
 def writeToAlembic(outDir, filename, rootObject, objects='*', trange='off', startFrame=1, endFrame=240, stepSize=1, format='hdf5'):
