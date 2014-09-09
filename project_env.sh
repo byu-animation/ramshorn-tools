@@ -21,6 +21,7 @@ then
     # The name of the project (eg: owned)
     export PROJECT_NAME=ramshorn
     export JOB=/groups/${PROJECT_NAME}
+
 else
     export PROJECT_NAME=`basename $JOB`
 fi
@@ -127,6 +128,11 @@ buildProjectDirs()
     if [ ! -d ~/houdini13.0/dso ]; then
         mkdir -p ~/houdini13.0/dso
     fi
+
+	if [ ! -d ~/maya/scripts/studioLibrary ]; then
+		mkdir -p ~/maya/scripts/studioLibrary
+		cp -r ${PROJECT_TOOLS}/maya-tools/shelf/scripts/studioLibrary/* ~/maya/scripts/studioLibrary
+	fi
 
     cp -u ${PROJECT_TOOLS}/otl_templates/*.otl ${OTLS_DIR}
     cp -u ${PROJECT_TOOLS}/houdini_dso/*.so ~/houdini13.0/dso
