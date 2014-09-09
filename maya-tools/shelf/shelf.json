@@ -70,10 +70,15 @@
             "annotation":"Rename or Delete shots or Copy animation to previs",
             "python_file":"maya_edit_shot.py"
         },
-	{
-            "icon":"AndrePickerImage.xpm",
-            "annotation":"Andre Control Picker",
-            "python_file":"andre_gui.py"
-	}
+		{
+		        "icon":"AndrePickerImage.xpm",
+		        "annotation":"Andre Control Picker",
+		        "python_file":"andre_gui.py"
+		},
+		{
+		        "icon":"studio_library.xpm",
+		        "annotation":"Studio Library",
+		        "python_file":"studio_library.py"
+		}
     ]
 }
