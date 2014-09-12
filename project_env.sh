@@ -189,11 +189,12 @@ export MAYA_SCRIPT_PATH=${MAYA_SCRIPT_PATH}:${PYTHONPATH}:${MAYA_SHELF_DIR}
 # Nuke specific environment
 ###############################################################################
 
-export NUKE_LOCATION=/usr/local/Nuke6.3v9
+export NUKE_LOCATION=/usr/local/Nuke8.0v3
 
 export NUKE_TOOLS_DIR=${PROJECT_TOOLS}/nuke-tools
-export NUKE_TOOLS_DIR=${NUKE_TOOLS_DIR}/python:${NUKE_TOOLS_DIR}
-export NUKE_PATH=${HOME}/.nuke:${NUKE_TOOLS_DIR}:${NUKE_LOCATION}/plugins/user:${NUKE_LOCATION}/plugins/icons:${NUKE_LOCATION}/plugins
+#export NUKE_TOOLS_DIR=${NUKE_TOOLS_DIR}/python:${NUKE_TOOLS_DIR}
+#export NUKE_PATH=${HOME}/.nuke:${NUKE_TOOLS_DIR}:${NUKE_LOCATION}/plugins/user:${NUKE_LOCATION}/plugins/icons:${NUKE_LOCATION}/plugins
+export NUKE_PATH=${NUKE_TOOLS_DIR}
 
 ###############################################################################
 # BEGIN AWESOMENESS!!!

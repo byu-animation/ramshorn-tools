@@ -13,5 +13,5 @@ export CURRENT_PROG='Nuke'
 cd ${USER_DIR}
 
 echo "Starting Nuke..."
-/usr/local/Nuke8.0v3/Nuke8.0 -b --nukex
+${NUKE_LOCATION}/Nuke8.0 -b --nukex
 

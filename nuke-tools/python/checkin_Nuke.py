@@ -11,7 +11,7 @@ def checkin():
 			amu.setComment(toCheckin, 'comment')
 			dest = amu.checkin(toCheckin)
 			nuke.message('Checkin Successful!')
-			nuke.scriptClose()
+			nuke.scriptClear()
 		else:
 			nuke.message('Can not check in')
 

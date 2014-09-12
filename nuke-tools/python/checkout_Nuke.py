@@ -116,8 +116,10 @@ class CheckoutController:
 	def checkout(self):
 		asset_name = self.checkout_dialog.get_current_item()
 		toCheckout = os.path.join(os.environ['SHOTS_DIR'], asset_name,'compositing')
+		#nuke.message(toCheckout)
 		try:
 			destpath = amu.checkout(toCheckout, True)
+			#nuke.message(destpath)		
 		except Exception as e:
 			if not amu.checkedOutByMe(toCheckout):
 				nuke.message(str(e))
@@ -126,12 +128,14 @@ class CheckoutController:
 				destpath = amu.getCheckoutDest(toCheckout)
 				#nuke.message("destpath = " + destpath)
 		toOpen = os.path.join(destpath,self.get_filename(toCheckout)+'.nk')
+		#nuke.message(toOpen)
 		#nuke.message("toOpen = " + toOpen)
 		#nuke.scriptClose()
 		if not os.path.exists(toOpen):
-			nuke.scriptNew()
+			nuke.scriptClear()
 			nuke.scriptSaveAs(filename=toOpen, overwrite=1)
 		else:
+			nuke.scriptClear()
 			nuke.scriptOpen(toOpen)
 		nuke.message('Checkout Successful')
 
