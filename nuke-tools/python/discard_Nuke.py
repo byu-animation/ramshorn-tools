@@ -27,7 +27,7 @@ def discard():
 		toDiscard = get_checkin_path()
 		if amu.isCheckedOutCopyFolder(toDiscard):
 			if show_confirm_dialog():
-				nuke.scriptNew()
+				nuke.scriptClear()
 				amu.discard(toDiscard)
 		else:
 			show_dialog('ERROR: Not checked out.')

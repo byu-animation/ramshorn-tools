@@ -1,3 +1,3 @@
 import sys
 
-sys.stderr.write( "\nCustom Owned Nuke plugins loaded...\n" )
+sys.stderr.write( "\nCustom Ramshorn Nuke plugins loaded...\n" )
