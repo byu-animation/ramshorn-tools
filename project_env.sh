@@ -129,9 +129,15 @@ buildProjectDirs()
         mkdir -p ~/houdini13.0/dso
     fi
 
+	# Install Studio Library
 	if [ ! -d ~/maya/scripts/studioLibrary ]; then
 		mkdir -p ~/maya/scripts/studioLibrary
 		cp -r ${PROJECT_TOOLS}/maya-tools/shelf/scripts/studioLibrary/* ~/maya/scripts/studioLibrary
+	fi
+
+	# Create temp folder for Studio Library
+	if [ ! -d /usr/tmp/studioLibrary ]; then
+		mkdir -p -m 777 /usr/tmp/studioLibrary
 	fi
 
     cp -u ${PROJECT_TOOLS}/otl_templates/*.otl ${OTLS_DIR}
