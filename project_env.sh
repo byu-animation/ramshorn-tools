@@ -20,7 +20,7 @@ if [ -z "$JOB" ]
 then
     # The name of the project (eg: owned)
     export PROJECT_NAME=ramshorn
-    export JOB=/groups/${PROJECT_NAME}
+    export JOB=~/ramshorn/ramshorngt/${PROJECT_NAME}
 
 else
     export PROJECT_NAME=`basename $JOB`
@@ -64,7 +64,7 @@ export OTLS_DIR=${PRODUCTION_DIR}/otls
 export HTOOLS_DIR=${PROJECT_TOOLS}/houdini-tools
 
 # Append to python path so batch scripts can access our modules
-export PYTHONPATH=$PYTHONPATH:/usr/autodesk/maya2014-x64/lib/python2.7/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib64/python2.7/site-packages:${PROJECT_TOOLS}:${PROJECT_TOOLS}/asset_manager:${PROJECT_TOOLS}/houdini-tools/python2.6libs:${PROJECT_TOOLS}/nuke-tools/python:${PYTHONPATH}
+export PYTHONPATH=$PYTHONPATH:/usr/autodesk/maya2014-x64/lib/python2.7/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib64/python2.7/site-packages:${PROJECT_TOOLS}:${PROJECT_TOOLS}/asset_manager:${PROJECT_TOOLS}/houdini-tools/python2.6libs:${PROJECT_TOOLS}/houdini-tools/python2.6libs/ui_tools:${PROJECT_TOOLS}/nuke-tools/python:${PYTHONPATH}
 
 # Issue submission website
 export ISSUE_URL="https://docs.google.com/forms/d/1bX1TSz9apCY4SuRkXpvtlb4pcdsmGEB9iHUwqyo4GwU/viewform"
