@@ -16,12 +16,12 @@ Once the asset has been checked in again, then another user may check it out. Th
 # If someone else has already claimed it for editing you will not be permitted to do so
 
 import hou_asset_mgr as mgr
-import lighting_asset_methods as lighting
+import checkout_shot as co_shot
 
 node = mgr.getSelectedNode()
 if node != None:
     mgr.checkout(node)
 else:
-    lighting.checkoutLightingFile()]]></script>
+    co_shot.showDialog()]]></script>
   </tool>
 </shelfDocument>

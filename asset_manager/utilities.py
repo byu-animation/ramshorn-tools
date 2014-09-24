@@ -230,7 +230,10 @@ def getVersionedFolderInfo(dirPath):
 	nodeInfo.append(cp.get("Versioning", "lastcheckintime"))
 	versionNum = int(cp.get("Versioning", "latestversion"))
 	latestVersion = "v"+("%03d" % versionNum) 
-	nodeInfo.append(cp.get("Comments", latestVersion))
+	if cp.has_section("Comments"):
+		nodeInfo.append(cp.get("Comments", latestVersion))
+	else:
+		nodeInfo.append('')
 	if isInstalled(dirPath):
 		nodeInfo.append("Yes")
 		nodeInfo.append(glob.glob(os.path.join(dirPath, 'stable', '*stable*'))[0])
