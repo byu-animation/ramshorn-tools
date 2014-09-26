@@ -75,10 +75,10 @@ class CheckoutShotDialog(QDialog):
         hou.hipFile.load(toOpen)
         obj = hou.node('/obj')
         for child in obj.children():
-            if child.isLocked():
-                shotParm = child.parm('anim')
-                if shotParm:
-                    shotParm.set(shotName)
+            # if child.isLocked():
+            shotParm = child.parm('anim')
+            if shotParm:
+                shotParm.set(shotName)
     
     def getFileToOpen(self, destpath):
         toCheckout = self.currentShot.workingDirectory
