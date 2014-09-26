@@ -57,7 +57,9 @@ class CheckoutShotDialog(QDialog):
                 toOpen = self.getFileToOpen(destpath)
                 print toOpen
                 if os.path.exists(toOpen):
-                    hou.hipFile.load(toOpen)
+                    # hou.hipFile.load(toOpen)
+                    self.openShotFile(toOpen, self.currentShot.name)
+                    self.done(0)
                 else:
                     hou.hipFile.clear()
                     hou.hipFile.save(toOpen) 
@@ -65,7 +67,18 @@ class CheckoutShotDialog(QDialog):
             elif self.currentShot.checkedOutByMe():
                 destpath = self.currentShot.getCheckoutDest()
                 toOpen = self.getFileToOpen(destpath)
-                hou.hipFile.load(toOpen)
+                # hou.hipFile.load(toOpen)
+                self.openShotFile(toOpen, self.currentShot.name)
+                self.done(0)
+
+    def openShotFile(self, toOpen, shotName):
+        hou.hipFile.load(toOpen)
+        obj = hou.node('/obj')
+        for child in obj.children():
+            if child.isLocked():
+                shotParm = child.parm('anim')
+                if shotParm:
+                    shotParm.set(shotName)
     
     def getFileToOpen(self, destpath):
         toCheckout = self.currentShot.workingDirectory
