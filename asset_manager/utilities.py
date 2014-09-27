@@ -771,7 +771,7 @@ def set_version(filepath, prefix=''):
     else:
         v = prefix+'v000'
     
-    latest_int = int(v[1:])+1
+    latest_int = int(v[-3:])+1
     latest = os.path.join(filepath,prefix+'v'+'%03d'%latest_int)
 
     os.mkdir(latest)
