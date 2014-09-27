@@ -1,3 +1,5 @@
+import os
+
 import utilities as amu
 
 def get_output_path(shot, prefix):
