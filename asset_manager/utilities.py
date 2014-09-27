@@ -3,7 +3,7 @@ This module contains functionality to manage the animation project.
 @author: Morgan Strong, Brian Kingery
 """
 
-import os, time, shutil, glob, pwd, tempfile, smtplib
+import os, time, shutil, glob, pwd, tempfile, smtplib, re
 from ConfigParser import ConfigParser
 
 def getProjectName():
@@ -735,6 +735,48 @@ def mayaImportAlembicFile(maya_file, abc_file):
 def setFocalLengthMaya(maya_file, focal):
 	setter = os.path.join(os.environ['MAYA_TOOLS_DIR'], 'setFocalLengthMaya.py')
 	os.system(getMayapy()+' '+setter+' '+maya_file+' '+str(focal))
+
+################################################################################
+# Versioning
+################################################################################
+'''
+filepath is a valid path to a versioned render folder
+finds the latest version folder
+if it is empty, it returns it
+otherwise creates the next version folder and returns it
+'''
+def set_version(filepath, prefix=''):
+    searchpath = os.path.join(filepath, '*')
+    files = glob.glob(searchpath)
+    versions = [f for f in files if os.path.isdir(f)]
+    versions.sort()
+    length = len(versions)
+    # print versions
+    if length > 0:
+        latest = versions[-1]
+        index = 0
+        v = os.path.basename(latest)
+        # make sure it is a versioned folder
+        while  not re.match(prefix+'v[0-9]+', v) and index < length:
+            latest = versions[-1-index]
+            print latest
+            v = os.path.basename(latest)
+            index += 1
+        if index < length:
+            # if it's empty use it
+            if not os.listdir(latest):
+                return latest
+        else:
+            v = prefix+'v000'
+    else:
+        v = prefix+'v000'
+    
+    latest_int = int(v[1:])+1
+    latest = os.path.join(filepath,prefix+'v'+'%03d'%latest_int)
+
+    os.mkdir(latest)
+    return latest
+
 ################################################################################
 # Send Mail
 ################################################################################
