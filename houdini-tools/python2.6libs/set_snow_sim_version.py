@@ -11,6 +11,6 @@ def get_output_path(shot, prefix):
 
 me = hou.pwd()
 shot = me.parm('anim').evalAsString()
-prefix = me.name()
+prefix = me.name()+'_'
 path = get_output_path(shot, prefix)
 me.parm('sopoutput').set(path)
