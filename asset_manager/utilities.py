@@ -737,7 +737,7 @@ def setFocalLengthMaya(maya_file, focal):
 	os.system(getMayapy()+' '+setter+' '+maya_file+' '+str(focal))
 
 ################################################################################
-# Versioning
+# Miscellaneous Versioning
 ################################################################################
 '''
 filepath is a valid path to a versioned render folder
