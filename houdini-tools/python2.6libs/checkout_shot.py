@@ -89,8 +89,20 @@ class CheckoutShotDialog(QDialog):
         self.done(0)    
 
     def unlock_Click(self):
-        self.currentShot.unlock()
-        self.refreshShot()
+        reply = hou.ui.displayMessage(  text             = 'Unlocking may corrupt the scene file. '
+                                                           + 'Are you sure you want to unlock this scene?'
+                                      , buttons          = ('Yes', 'No')
+                                      , severity         = hou.severityType.Message
+                                      , default_choice   = 1
+                                      , close_choice     = 1
+                                      , help             = 'This feature is currently experimental.'
+                                      , title            = 'Confirm ' + self.currentShot.name + ' Unlock'
+                                      , details          = None
+                                      , details_expanded = False
+                                      )
+        if reply == 0:
+            self.currentShot.unlock()
+            self.refreshShot()
         
 
     def shotList_ItemSelectionChange(self, item=None):
