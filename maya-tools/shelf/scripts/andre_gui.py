@@ -1,5 +1,6 @@
 from functools import partial
 import maya.cmds as cmds
+import maya.mel as mel
 
 # Andre Picker - basics of this is based off a tutorial by Jeremy Ernst.
 
@@ -128,8 +129,6 @@ def buildUI():
 	widgets["r_bendyShinButton"] = cmds.button(label = "", w = 20, h = 20, bgc = [0, 1, 1], c = partial(selectControls, [andre_ns + "cc_r_mid_bendyShin_01"]))
 	widgets["r_bendyAnkleButton"] = cmds.button(label = "", w = 20, h = 20, bgc = [0, 1, 1], c = partial(selectControls, [andre_ns + "cc_r_bendyAnkle_01"]))
 
-	#widgets["rightLegIKFKButton"] = cmds.button(label = "IK/FK TOGGLE", w = 85, h = 20, bgc = [1, 0.7, 0.7], c = r_leg_ikfk_toggle)
-
 	# Left Hand
 	widgets["leftPalmButton"] = cmds.button(label = "", w = 40, h = 40, bgc = [0, 0, 1], c = partial(selectControls, [andre_ns + "cc_l_Hand_01"]))				
 	widgets["leftThumbButton"] = cmds.button(label = "", w = 12, h = 30, bgc = [0, 1, 0], c = partial(selectControls, [andre_ns + "cc_l_Thumb_01"]))				
@@ -148,8 +147,20 @@ def buildUI():
 	widgets["rightPinkyButton"] = cmds.button(label = "", w = 30, h = 12, bgc = [0, 1, 0], c = partial(selectControls, [andre_ns + "cc_r_Pinky_01"]))				
 
 
+	# IK/FK Matching
+	widgets["l_arm_fk_to_ik"] = cmds.button(label = "M IK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(l_arm_fk_to_ik))
+	widgets["l_arm_ik_to_fk"] = cmds.button(label = "M FK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(l_arm_ik_to_fk))
 
 
+	widgets["r_arm_fk_to_ik"] = cmds.button(label = "M IK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(r_arm_fk_to_ik))
+	widgets["r_arm_ik_to_fk"] = cmds.button(label = "M FK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(r_arm_ik_to_fk))
+
+	widgets["l_leg_fk_to_ik"] = cmds.button(label = "M IK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(l_leg_fk_to_ik))
+	widgets["l_leg_ik_to_fk"] = cmds.button(label = "M FK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(l_leg_ik_to_fk))
+
+
+	widgets["r_leg_fk_to_ik"] = cmds.button(label = "M IK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(r_leg_fk_to_ik))
+	widgets["r_leg_ik_to_fk"] = cmds.button(label = "M FK", w = 40, h = 20, bgc = [1, 1, 1], c = partial(r_leg_ik_to_fk))
 
 
 
@@ -263,6 +274,19 @@ def buildUI():
 	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["rightRingButton"], 'left', 85), (widgets["rightRingButton"], 'top', 109) ] )		
 	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["rightPinkyButton"], 'left', 92), (widgets["rightPinkyButton"], 'top', 128) ] )		
 
+	# FK to IK
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["l_arm_fk_to_ik"], 'left', 520), (widgets["l_arm_fk_to_ik"], 'top', 290) ] )		
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["l_arm_ik_to_fk"], 'left', 520), (widgets["l_arm_ik_to_fk"], 'top', 315) ] )		
+
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["r_arm_fk_to_ik"], 'left', 115), (widgets["r_arm_fk_to_ik"], 'top', 290) ] )		
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["r_arm_ik_to_fk"], 'left', 115), (widgets["r_arm_ik_to_fk"], 'top', 315) ] )
+
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["l_leg_fk_to_ik"], 'left', 420), (widgets["l_leg_fk_to_ik"], 'top', 540) ] )		
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["l_leg_ik_to_fk"], 'left', 420), (widgets["l_leg_ik_to_fk"], 'top', 565) ] )		
+
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["r_leg_fk_to_ik"], 'left', 210), (widgets["r_leg_fk_to_ik"], 'top', 540) ] )		
+	cmds.formLayout(widgets["formLayout"], edit = True, af = [ (widgets["r_leg_ik_to_fk"], 'left', 210), (widgets["r_leg_ik_to_fk"], 'top', 565) ] )
+
 
 	cmds.showWindow(widgets["window"])
 
@@ -285,6 +309,288 @@ def selectControls(controls, buttons, *args):
 		for i in range(len(controls)):
 
 			cmds.select(controls[i], add = True)
+
+
+def l_arm_fk_to_ik(self):
+	print "l_arm_fk_to_ik"
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# OrientConstrain FK shoulder to IK shoulder bone...
+	mel.eval('select ' + andre_ns + 'IK_l_arm_01; select -tgl ' + andre_ns + 'cc_l_armFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_armFK_01...
+	mel.eval('string $find_ptCns_ikShoulder[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_l_armFK_01`;')
+	mel.eval('delete $find_ptCns_ikShoulder[0];')
+
+	# OrientConstrain FK elbow to IK elbow bone...
+	mel.eval('select '+ andre_ns + 'IK_l_elbow_01; select -tgl ' + andre_ns + 'cc_l_forearmFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_forearmFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_forearmFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_forearmFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_forearmFK_01...
+	mel.eval('string $find_ptCns_ikElbow[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_l_forearmFK_01`;')
+	mel.eval('delete $find_ptCns_ikElbow[0];')
+
+	# OrientConstrain FK wrist to IK wrist bone...
+	mel.eval('select ' + andre_ns + 'IK_l_wrist_01; select -tgl ' + andre_ns + 'cc_l_handFK_01; orientConstraint -n IKmatch_cc_l_wrist_orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_handFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_handFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_handFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_handFK_01...
+	mel.eval('delete IKmatch_cc_l_wrist_orientConstraint;')
+	mel.eval('select -cl;')
+
+
+def l_arm_ik_to_fk(self):
+	print "l_arm_ik_to_fk"
+
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# Match IK elbow control to FK elbow control...
+	mel.eval('select ' + andre_ns + 'locMatch_l_elbowFK_01; select -tgl ' + andre_ns + 'cc_l_elbowIK_01; pointConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_elbowIK_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_elbowIK_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_elbowIK_01.tz";')
+
+	# Find and remove point constrain on IK elbow...
+	mel.eval('string $find_ptCns_ikElbow[] = `listRelatives -type pointConstraint ' + andre_ns + 'cc_l_elbowIK_01`;')
+	mel.eval('delete $find_ptCns_ikElbow[0];')
+
+	# Match IK wrist control to FK wrist control...
+	mel.eval('select ' + andre_ns + 'locMatch_l_wristFK_01; select -tgl ' + andre_ns + 'cc_l_armIK_01; parentConstraint -n FKmatch_cc_l_arm_parentConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armIK_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armIK_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armIK_01.tz";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armIK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armIK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_armIK_01.rz";')
+
+	# Find and remove parent constrain on IK wrist...
+	mel.eval('delete FKmatch_cc_l_arm_parentConstraint;')
+	mel.eval('select -cl;')
+
+
+def r_arm_fk_to_ik(self):
+	print "r_arm_fk_to_ik"
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# OrientConstrain FK shoulder to IK shoulder bone...
+	mel.eval('select ' + andre_ns + 'IK_r_arm_01; select -tgl ' + andre_ns + 'cc_r_armFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_armFK_01...
+	mel.eval('string $find_ptCns_ikShoulder[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_r_armFK_01`;')
+	mel.eval('delete $find_ptCns_ikShoulder[0];')
+
+	# OrientConstrain FK elbow to IK elbow bone...
+	mel.eval('select '+ andre_ns + 'IK_r_elbow_01; select -tgl ' + andre_ns + 'cc_r_forearmFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_forearmFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_forearmFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_forearmFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_forearmFK_01...
+	mel.eval('string $find_ptCns_ikElbow[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_r_forearmFK_01`;')
+	mel.eval('delete $find_ptCns_ikElbow[0];')
+
+	# OrientConstrain FK wrist to IK wrist bone...
+	mel.eval('select ' + andre_ns + 'IK_r_wrist_01; select -tgl ' + andre_ns + 'cc_r_handFK_01; orientConstraint -n IKmatch_cc_r_wrist_orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_handFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_handFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_handFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_handFK_01...
+	mel.eval('delete IKmatch_cc_r_wrist_orientConstraint;')
+	mel.eval('select -cl;')
+
+def r_arm_ik_to_fk(self):
+	print "r_arm_ik_to_fk"
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# Match IK elbow control to FK elbow control...
+	mel.eval('select ' + andre_ns + 'locMatch_r_elbowFK_01; select -tgl ' + andre_ns + 'cc_r_elbowIK_01; pointConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_elbowIK_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_elbowIK_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_elbowIK_01.tz";')
+
+	# Find and remove point constrain on IK elbow...
+	mel.eval('string $find_ptCns_ikElbow[] = `listRelatives -type pointConstraint ' + andre_ns + 'cc_r_elbowIK_01`;')
+	mel.eval('delete $find_ptCns_ikElbow[0];')
+
+	# Match IK wrist control to FK wrist control...
+	mel.eval('select ' + andre_ns + 'locMatch_r_wristFK_01; select -tgl ' + andre_ns + 'cc_r_armIK_01; parentConstraint -n FKmatch_cc_r_arm_parentConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armIK_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armIK_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armIK_01.tz";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armIK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armIK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_armIK_01.rz";')
+
+	# Find and remove parent constrain on IK wrist...
+	mel.eval('delete FKmatch_cc_r_arm_parentConstraint;')
+	mel.eval('select -cl;')
+
+##### LEGS #####
+
+def l_leg_fk_to_ik(self):
+	print "l_leg_fk_to_ik"
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# OrientConstrain FK thigh to IK thigh bone...
+	mel.eval('select ' + andre_ns + 'loc_FK_Match_IK_l_thigh_01; select -tgl ' + andre_ns + 'cc_l_legFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_legFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_legFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_legFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_legFK_01...
+	mel.eval('string $find_ptCns_ikThigh[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_l_legFK_01`;')
+	mel.eval('delete $find_ptCns_ikThigh[0];')
+
+	# OrientConstrain FK knee to IK knee bone...
+	mel.eval('select '+ andre_ns + 'loc_FK_Match_IK_l_knee_01; select -tgl ' + andre_ns + 'cc_l_shinFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_shinFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_shinFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_shinFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_shinFK_01...
+	mel.eval('string $find_ptCns_ikKnee[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_l_shinFK_01`;')
+	mel.eval('delete $find_ptCns_ikKnee[0];')
+
+	# OrientConstrain FK ankle to IK ankle bone...
+	mel.eval('select ' + andre_ns + 'loc_FK_Match_IK_l_ankle_01; select -tgl ' + andre_ns + 'cc_l_ankleFK_01; orientConstraint -n IKmatch_cc_l_ankle_orientConstraint;')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_ankleFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_ankleFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_ankleFK_01.rz";')
+
+	# OrientConstrain FK toe to IK toe bone...
+	mel.eval('select ' + andre_ns + 'loc_FK_Match_IK_l_ball_01; select -tgl ' + andre_ns + 'cc_l_toeFK_01; orientConstraint -n IKmatch_cc_l_toe_orientConstraint;')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_toeFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_toeFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_toeFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_handFK_01...
+	mel.eval('delete IKmatch_cc_l_toe_orientConstraint;')
+	mel.eval('select -cl;')
+
+
+def l_leg_ik_to_fk(self):
+	print "l_leg_ik_to_fk"
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# Match IK knee control to FK knee control...
+	mel.eval('select ' + andre_ns + 'locMatch_l_kneeFK_01; select -tgl ' + andre_ns + 'cc_l_knee_01; pointConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_knee_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_knee_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_knee_01.tz";')
+
+	# Find and remove point constrain on IK knee...
+	mel.eval('string $find_ptCns_ikKnee[] = `listRelatives -type pointConstraint ' + andre_ns + 'cc_l_knee_01`;')
+	mel.eval('delete $find_ptCns_ikKnee[0];')
+
+	# Match IK ankle control to FK ankle control...
+	mel.eval('select ' + andre_ns + 'cc_l_ankleFK_01; select -tgl ' + andre_ns + 'cc_l_foot_01; parentConstraint -n FKmatch_cc_l_foot_01_parentConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_foot_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_foot_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_foot_01.tz";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_foot_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_foot_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_l_foot_01.rz";')
+
+	# Find and remove parent constrain on IK ankle...
+	mel.eval('delete FKmatch_cc_l_foot_01_parentConstraint;')
+	mel.eval('select -cl;')
+
+
+def r_leg_fk_to_ik(self):
+	print "r_leg_fk_to_ik"
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# OrientConstrain FK thigh to IK thigh bone...
+	mel.eval('select ' + andre_ns + 'loc_FK_Match_IK_r_thigh_01; select -tgl ' + andre_ns + 'cc_r_legFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_legFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_legFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_legFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_legFK_01...
+	mel.eval('string $find_ptCns_ikThigh[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_r_legFK_01`;')
+	mel.eval('delete $find_ptCns_ikThigh[0];')
+
+	# OrientConstrain FK knee to IK knee bone...
+	mel.eval('select '+ andre_ns + 'loc_FK_Match_IK_r_knee_01; select -tgl ' + andre_ns + 'cc_r_shinFK_01; orientConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_shinFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_shinFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_shinFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_shinFK_01...
+	mel.eval('string $find_ptCns_ikKnee[] = `listRelatives -type orientConstraint ' + andre_ns + 'cc_r_shinFK_01`;')
+	mel.eval('delete $find_ptCns_ikKnee[0];')
+
+	# OrientConstrain FK ankle to IK ankle bone...
+	mel.eval('select ' + andre_ns + 'loc_FK_Match_IK_r_ankle_01; select -tgl ' + andre_ns + 'cc_r_ankleFK_01; orientConstraint -n IKmatch_cc_r_ankle_orientConstraint;')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_ankleFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_ankleFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_ankleFK_01.rz";')
+
+	# OrientConstrain FK toe to IK toe bone...
+	mel.eval('select ' + andre_ns + 'loc_FK_Match_IK_r_ball_01; select -tgl ' + andre_ns + 'cc_r_toeFK_01; orientConstraint -n IKmatch_cc_r_toe_orientConstraint;')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_toeFK_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_toeFK_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_toeFK_01.rz";')
+
+	# Find and remove orient constrain on cc_l_handFK_01...
+	mel.eval('delete IKmatch_cc_r_toe_orientConstraint;')
+	mel.eval('select -cl;')
+
+def r_leg_ik_to_fk(self):
+	print "r_leg_ik_to_fk"
+	andre_ns = "ramshorn_andre_rig_stable:"
+
+	# Match IK knee control to FK knee control...
+	mel.eval('select ' + andre_ns + 'locMatch_r_kneeFK_01; select -tgl ' + andre_ns + 'cc_r_knee_01; pointConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_knee_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_knee_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_knee_01.tz";')
+
+	# Find and remove point constrain on IK knee...
+	mel.eval('string $find_ptCns_ikKnee[] = `listRelatives -type pointConstraint ' + andre_ns + 'cc_r_knee_01`;')
+	mel.eval('delete $find_ptCns_ikKnee[0];')
+
+	# Match IK ankle control to FK ankle control...
+	mel.eval('select ' + andre_ns + 'cc_r_ankleFK_01; select -tgl ' + andre_ns + 'cc_r_foot_01; parentConstraint -n FKmatch_cc_r_foot_01_parentConstraint;')
+
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_foot_01.tx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_foot_01.ty";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_foot_01.tz";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_foot_01.rx";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_foot_01.ry";')
+	mel.eval('setKeyframe "' + andre_ns + 'cc_r_foot_01.rz";')
+
+	# Find and remove parent constrain on IK ankle...
+	mel.eval('delete FKmatch_cc_r_foot_01_parentConstraint;')
+	mel.eval('select -cl;')
 
 
 def go():
