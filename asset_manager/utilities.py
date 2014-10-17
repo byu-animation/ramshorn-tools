@@ -757,12 +757,15 @@ def set_version(filepath, prefix=''):
         index = 0
         v = os.path.basename(latest)
         # make sure it is a versioned folder
-        while  not re.match(prefix+'v[0-9]+', v) and index < length:
+        match = False
+        while index < length:
             latest = versions[-1-index]
-            print latest
             v = os.path.basename(latest)
             index += 1
-        if index < length:
+            if re.match(prefix+'v[0-9]+', v):
+                match = True
+                break
+        if match:
             # if it's empty use it
             if not os.listdir(latest):
                 return latest

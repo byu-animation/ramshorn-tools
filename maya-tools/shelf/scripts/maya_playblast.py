@@ -3,6 +3,7 @@ import utilities as amu
 import maya.cmds as mc
 import maya.mel as mel
 import os
+import shutil
 
 def simpleBlast(name, startFrame, endFrame):
 
@@ -73,9 +74,14 @@ def simpleBlast(name, startFrame, endFrame):
     mc.modelEditor(currentPanel, e=True, cv=panelSwitch[21])
     mc.modelEditor(currentPanel, e=True, hu=panelSwitch[22])
 
-    djv_cmd = (" /usr/local/djv/bin/djv_view  " + name +  ".mov &");
+    filename = name +".mov"
+    djv_cmd = (" /usr/local/djv/bin/djv_view  " + filename + " &");
     os.system(djv_cmd)
-    print "playblast saved here: "+name+".mov"
+    print "playblast saved here: "+filename
+    for_edit_dir = os.path.join(os.environ['PRODUCTION_DIR'], 'FOR_EDIT', 'ANIMATION_PLAYBLASTS')
+    for_edit_name = os.path.basename(filename).split('_')[0]+'.mov'
+    for_edit_path = os.path.join(for_edit_dir, for_edit_name)
+    shutil.copy(filename, for_edit_path)
 
 def glBlast(name, startFrame, endFrame):
     mc.setAttr('defaultHardwareRenderGlobals.filename', name, type="string")
