@@ -1,0 +1,368 @@
+#! /usr/local/Nuke8.0v3/libnuke-8.0.v3.so -nx
+version 8.0 v3
+Gizmo {
+ addUserKnob {20 User l "ANDRE MASKS"}
+ addUserKnob {41 disable_2 l BackPackMain T noBackPackMain.disable}
+ addUserKnob {41 disable_19 l Buttons T noButtons.disable}
+ addUserKnob {41 disable_3 l "BackPack Other" T noBackPackOther.disable}
+ addUserKnob {41 disable_11 l Coat T noCoat.disable}
+ addUserKnob {41 disable_7 l Beanie T noBeanie.disable}
+ addUserKnob {41 disable_8 l "Boot Leather" T noBootLeather.disable}
+ addUserKnob {41 disable_9 l "Boot Metal" T noBootMetal.disable}
+ addUserKnob {41 disable_10 l Buckle T noBuckle.disable}
+ addUserKnob {41 disable_6 l Face T noFace.disable}
+ addUserKnob {41 disable_12 l Gloves T NoGloves.disable}
+ addUserKnob {41 disable_18 l Hair T noHair.disable}
+ addUserKnob {41 disable_13 l "Harness Leather" T noHarnessLeather.disable}
+ addUserKnob {41 disable_4 l "Left Eye" T noLeftEye.disable}
+ addUserKnob {41 disable_1 l Pants T NoPants.disable}
+ addUserKnob {41 disable_14 l Plastic T noPlastic.disable}
+ addUserKnob {41 disable_5 l "Right Eye" T noRightEye.disable}
+ addUserKnob {41 disable_15 l Strap T noStrap.disable}
+ addUserKnob {41 disable_16 l Teeth T noTeeth.disable}
+ addUserKnob {41 disable_17 l "Turtle Neck" T noTurtleNeck.disable}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 96
+  ypos -746
+ }
+set N36d6e90 [stack 0]
+ Dot {
+  name Dot1
+  xpos 130
+  ypos -689
+ }
+set N13421400 [stack 0]
+add_layer {Andre_Left_Eye_Mask Andre_Left_Eye_Mask.red Andre_Left_Eye_Mask.green Andre_Left_Eye_Mask.blue}
+ Shuffle {
+  in Andre_Left_Eye_Mask
+  red blue
+  green blue
+  name L_Eye
+  xpos 804
+  ypos -428
+ }
+ Remove {
+  name noLeftEye
+  xpos 804
+  ypos -402
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Right_Eye_Mask Andre_Right_Eye_Mask.red Andre_Right_Eye_Mask.green Andre_Right_Eye_Mask.blue}
+ Shuffle {
+  in Andre_Right_Eye_Mask
+  red blue
+  green blue
+  name R_eye
+  xpos 918
+  ypos -427
+ }
+ Remove {
+  name noRightEye
+  xpos 918
+  ypos -401
+  disable true
+ }
+push 0
+push $N13421400
+add_layer {Andre_Button_Mask Andre_Button_Mask.red Andre_Button_Mask.green Andre_Button_Mask.blue}
+ Shuffle {
+  in Andre_Button_Mask
+  red blue
+  green blue
+  name button
+  xpos -424
+  ypos -420
+ }
+ Remove {
+  name noButtons
+  xpos -424
+  ypos -394
+  disable true
+ }
+push 0
+push 0
+push $N13421400
+add_layer {Andre_face_mask Andre_face_mask.red Andre_face_mask.green Andre_face_mask.blue}
+ Shuffle {
+  in Andre_face_mask
+  red blue
+  green blue
+  name face
+  xpos 501
+  ypos -426
+ }
+ Remove {
+  name noFace
+  xpos 501
+  ypos -400
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Backpack_Other_Mask Andre_Backpack_Other_Mask.red Andre_Backpack_Other_Mask.green Andre_Backpack_Other_Mask.blue}
+ Shuffle {
+  in Andre_Backpack_Other_Mask
+  red blue
+  green blue
+  name Backpack
+  xpos 696
+  ypos -427
+ }
+ Remove {
+  name noBackPackOther
+  xpos 696
+  ypos -401
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Backpack_Main_Mask Andre_Backpack_Main_Mask.red Andre_Backpack_Main_Mask.green Andre_Backpack_Main_Mask.blue}
+ Shuffle {
+  in Andre_Backpack_Main_Mask
+  red blue
+  green blue
+  name Backpack_Main
+  xpos 594
+  ypos -425
+ }
+ Remove {
+  name noBackPackMain
+  xpos 594
+  ypos -399
+  disable true
+ }
+push 0
+push $N13421400
+add_layer {Andre_TurtleNeck_Mask Andre_TurtleNeck_Mask.red Andre_TurtleNeck_Mask.green Andre_TurtleNeck_Mask.blue}
+ Shuffle {
+  in Andre_TurtleNeck_Mask
+  red blue
+  green blue
+  name turtle_neck
+  xpos 408
+  ypos -424
+ }
+ Remove {
+  name noTurtleNeck
+  xpos 408
+  ypos -398
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Teeth_Mask Andre_Teeth_Mask.red Andre_Teeth_Mask.green Andre_Teeth_Mask.blue}
+ Shuffle {
+  in Andre_Teeth_Mask
+  red blue
+  green blue
+  name teeth
+  xpos 318
+  ypos -423
+ }
+ Remove {
+  name noTeeth
+  xpos 318
+  ypos -397
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Strap_Mask Andre_Strap_Mask.red Andre_Strap_Mask.green Andre_Strap_Mask.blue}
+ Shuffle {
+  in Andre_Strap_Mask
+  red blue
+  green blue
+  name strap
+  xpos 224
+  ypos -422
+ }
+ Remove {
+  name noStrap
+  xpos 224
+  ypos -396
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Plastic_Mask Andre_Plastic_Mask.red Andre_Plastic_Mask.green Andre_Plastic_Mask.blue}
+ Shuffle {
+  in Andre_Plastic_Mask
+  red blue
+  green blue
+  name plastic
+  xpos 132
+  ypos -425
+ }
+ Remove {
+  name noPlastic
+  xpos 132
+  ypos -399
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Pants_Mask Andre_Pants_Mask.red Andre_Pants_Mask.green Andre_Pants_Mask.blue}
+ Shuffle {
+  in Andre_Pants_Mask
+  red blue
+  green blue
+  name pants
+  xpos 46
+  ypos -428
+ }
+ Remove {
+  name NoPants
+  xpos 46
+  ypos -402
+  disable true
+ }
+push $N13421400
+add_layer {Andre_HarnessLeather_Mask Andre_HarnessLeather_Mask.red Andre_HarnessLeather_Mask.green Andre_HarnessLeather_Mask.blue}
+ Shuffle {
+  in Andre_HarnessLeather_Mask
+  red blue
+  green blue
+  name harness_leather
+  xpos -46
+  ypos -425
+ }
+ Remove {
+  name noHarnessLeather
+  xpos -46
+  ypos -399
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Hair_Mask Andre_Hair_Mask.red Andre_Hair_Mask.green Andre_Hair_Mask.blue}
+ Shuffle {
+  in Andre_Hair_Mask
+  red blue
+  green blue
+  name hair
+  xpos -139
+  ypos -421
+ }
+ Remove {
+  name noHair
+  xpos -139
+  ypos -395
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Gloves_Mask Andre_Gloves_Mask.red Andre_Gloves_Mask.green Andre_Gloves_Mask.blue}
+ Shuffle {
+  in Andre_Gloves_Mask
+  red blue
+  green blue
+  name gloves
+  xpos -230
+  ypos -421
+ }
+ Remove {
+  name NoGloves
+  xpos -230
+  ypos -395
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Coat_Mask Andre_Coat_Mask.red Andre_Coat_Mask.green Andre_Coat_Mask.blue}
+ Shuffle {
+  in Andre_Coat_Mask
+  red blue
+  green blue
+  name coat
+  xpos -329
+  ypos -418
+ }
+ Remove {
+  name noCoat
+  xpos -329
+  ypos -392
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Buckle_Mask Andre_Buckle_Mask.red Andre_Buckle_Mask.green Andre_Buckle_Mask.blue}
+ Shuffle {
+  in Andre_Buckle_Mask
+  red blue
+  green blue
+  name buckle
+  xpos -535
+  ypos -421
+ }
+ Remove {
+  name noBuckle
+  xpos -535
+  ypos -395
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Boot_Metal_Mask Andre_Boot_Metal_Mask.red Andre_Boot_Metal_Mask.green Andre_Boot_Metal_Mask.blue}
+ Shuffle {
+  in Andre_Boot_Metal_Mask
+  red blue
+  green blue
+  name boot_metal
+  xpos -647
+  ypos -416
+ }
+ Remove {
+  name noBootMetal
+  xpos -647
+  ypos -390
+  disable true
+ }
+push 0
+push $N13421400
+add_layer {Andre_Beanie_Mask Andre_Beanie_Mask.red Andre_Beanie_Mask.green Andre_Beanie_Mask.blue}
+ Shuffle {
+  in Andre_Beanie_Mask
+  red blue
+  green blue
+  name beanie
+  xpos -860
+  ypos -407
+ }
+ Remove {
+  name noBeanie
+  xpos -860
+  ypos -381
+  disable true
+ }
+push $N13421400
+add_layer {Andre_Boot_Leather_Mask Andre_Boot_Leather_Mask.red Andre_Boot_Leather_Mask.green Andre_Boot_Leather_Mask.blue}
+ Shuffle {
+  in Andre_Boot_Leather_Mask
+  red blue
+  green blue
+  name boot_leather
+  xpos -761
+  ypos -410
+ }
+ Remove {
+  name noBootLeather
+  xpos -761
+  ypos -384
+  disable true
+ }
+ Merge2 {
+  inputs 23+1
+  operation plus
+  name Merge1
+  xpos 96
+  ypos -2
+ }
+set N25d922f0 [stack 0]
+ Output {
+  name Output1
+  xpos 96
+  ypos 50
+ }
+push $N36d6e90
+push $N25d922f0
+ Viewer {
+  inputs 2
+  input_process false
+  name Viewer1
+  xpos -897
+  ypos -2
+ }
+end_group

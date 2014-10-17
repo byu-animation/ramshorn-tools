@@ -1,3 +1,4 @@
+import nuke
 class Group():
     def __init__(self, name):
         self.groupName = name
@@ -37,7 +38,7 @@ def getGroup(newGrpName, grpList):
     return None
 
 selectedNodes = nuke.selectedNodes()
-print 'Beginning'
+#print 'Beginning'
 for readNode in selectedNodes:
     if readNode.Class() != 'Read':
         nuke.message('This is not ReadNode. Plase select Read Node.')
@@ -51,20 +52,24 @@ for readNode in selectedNodes:
             channelLayer = channel.split('.')
             channelLayerList.append(channelLayer[0])
         newLayerList = list(set(channelLayerList))
-        print newLayerList
+        #print newLayerList
         oldGrpName = ""
         global grpList
         grpList = []
         for layer in newLayerList:
-            newGrpName = parseForGroupName(layer)
-            curGrp = getGroup(newGrpName, grpList)
-            if curGrp == None: #if no same name in group
-                newGrp = Group(newGrpName)#create new group and add it to the list
-                newGrp.add(layer)
-                grpList.append(newGrp)
-            else: #if found the same name in group
-                curGrp.add(layer)
+            names = layer.split('_')
+            #print names[0]
+            if names[0] == 'objmshrn' or names[0] == 'sss' or names[0] == 'obj':
+                newGrpName = parseForGroupName(layer)
+                curGrp = getGroup(newGrpName, grpList)
+                if curGrp == None: #if no same name in group
+                    newGrp = Group(newGrpName)#create new group and add it to the list
+                    newGrp.add(layer)
+                    grpList.append(newGrp)
+                else: #if found the same name in group
+                    curGrp.add(layer)
         
+        #print "printing group"
         #print grpList
         
         CustomNode = nuke.nodes.Group(name="LightControl", inputs=[readNode])
@@ -74,15 +79,17 @@ for readNode in selectedNodes:
         global countForCN
         global bInputForCN
         global CCList
+        global mergeNodeCN
         CCList = []
         CustomNode.begin()
         countForCN = 1
+        mergeNodeCN = nuke.nodes.Merge()
         inputForCN = nuke.nodes.Input()
         outputForCN = nuke.nodes.Output()
         for group in grpList:
             GN = group.groupName
-            print "Groupname: " + group.groupName
-            if GN != 'direct_reflectivity' and GN != 'rgba' and GN != 'P' and GN != 'volume' and GN != 'other' and GN != 'N' and GN != 'depth':
+            #print "Groupname: " + group.groupName
+            if GN != 'rgba' and GN != 'P' and GN != 'other' and GN != 'N' and GN != 'depth':
                 g = nuke.nodes.Group(name=GN, inputs = [inputForCN])
                 g.knob('postage_stamp').setValue(True)
                 layers = group.getLayerList()
@@ -96,7 +103,7 @@ for readNode in selectedNodes:
                 varIn = nuke.nodes.Input()
                 varOut = nuke.nodes.Output()
                 count = 1
-                print "here"
+                #print "here"
                 #mergeNode = nuke.nodes.Merge(operation='plus')
                 #nuke.autoplaceSnap(mergeNode)
                 #print "Size: {}".format(len(layers))
@@ -119,7 +126,7 @@ for readNode in selectedNodes:
                     count = count + 1
                
                 g.end()
-            if GN != 'direct_reflectivity' and GN != 'rgba' and GN != 'P' and GN != 'volume' and GN != 'other' and GN != 'N' and GN != 'depth':
+            if GN != 'rgba' and GN != 'P' and GN != 'other' and GN != 'N' and GN != 'depth':
                 UnPremultNode = nuke.nodes.Unpremult(inputs=[g])
                 CCNode = nuke.nodes.ColorCorrect(name="CC: {}".format(group.groupName), inputs=[UnPremultNode])
                 CCList.append(CCNode)

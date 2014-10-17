@@ -1,0 +1,215 @@
+#! /usr/local/Nuke8.0v3/libnuke-8.0.v3.so -nx
+version 8.0 v3
+Gizmo {
+ addUserKnob {20 User}
+ addUserKnob {41 disable_1 l body T nobody.disable}
+ addUserKnob {41 disable_2 l Eyes T no_eyes.disable}
+ addUserKnob {41 disable_3 l Fur T no_fur.disable}
+ addUserKnob {41 tongue T no_tongue.disable}
+ addUserKnob {41 hooves T no_hooves.disable}
+ addUserKnob {41 horns T no_horns.disable}
+ addUserKnob {41 nose T no_nose.disable}
+ addUserKnob {41 teeth T no_teeth.disable}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos 86
+  ypos -499
+ }
+set N45b93c0 [stack 0]
+add_layer {papa_teeth_mask papa_teeth_mask.red papa_teeth_mask.green papa_teeth_mask.blue}
+ Shuffle {
+  in papa_teeth_mask
+  green red
+  blue red
+  alpha red
+  name papa_teeth_mask
+  xpos 321
+  ypos -420
+ }
+ Remove {
+  name no_teeth
+  xpos 321
+  ypos -394
+  disable true
+ }
+ Dot {
+  name Dot1
+  xpos 355
+  ypos -161
+ }
+push $N45b93c0
+add_layer {papa_nose_mask papa_nose_mask.red papa_nose_mask.green papa_nose_mask.blue}
+ Shuffle {
+  in papa_nose_mask
+  green red
+  blue red
+  alpha red
+  name papa_nose_mask
+  xpos 247
+  ypos -396
+ }
+ Remove {
+  name no_nose
+  xpos 252
+  ypos -367
+  disable true
+ }
+ Dot {
+  name Dot2
+  xpos 303
+  ypos -196
+ }
+push $N45b93c0
+add_layer {papa_horns_mask papa_horns_mask.red papa_horns_mask.green papa_horns_mask.blue}
+ Shuffle {
+  in papa_horns_mask
+  green red
+  blue red
+  alpha red
+  name papa_horns_mask
+  xpos 182
+  ypos -367
+ }
+ Remove {
+  name no_horns
+  xpos 182
+  ypos -341
+  disable true
+ }
+ Dot {
+  name Dot3
+  xpos 244
+  ypos -225
+ }
+push $N45b93c0
+add_layer {papa_hooves_mask papa_hooves_mask.red papa_hooves_mask.green papa_hooves_mask.blue}
+ Shuffle {
+  in papa_hooves_mask
+  green red
+  blue red
+  alpha red
+  name papa_hooves_mask
+  xpos 102
+  ypos -336
+ }
+ Remove {
+  name no_hooves
+  xpos 102
+  ypos -310
+  disable true
+ }
+ Dot {
+  name Dot4
+  xpos 148
+  ypos -260
+ }
+push $N45b93c0
+add_layer {papa_tongue_mask papa_tongue_mask.red papa_tongue_mask.green papa_tongue_mask.blue}
+ Shuffle {
+  in papa_tongue_mask
+  green red
+  blue red
+  alpha red
+  name papa_tongue_mask
+  xpos 4
+  ypos -325
+ }
+ Remove {
+  name no_tongue
+  xpos 4
+  ypos -299
+  disable true
+ }
+ Dot {
+  name Dot5
+  xpos 61
+  ypos -272
+ }
+push $N45b93c0
+add_layer {papa_fur_mask papa_fur_mask.red papa_fur_mask.green papa_fur_mask.blue}
+ Shuffle {
+  in papa_fur_mask
+  green red
+  blue red
+  alpha red
+  name papa_fur_mask
+  xpos -72
+  ypos -353
+ }
+ Remove {
+  name no_fur
+  xpos -72
+  ypos -327
+  disable true
+ }
+ Dot {
+  name Dot8
+  xpos -38
+  ypos -277
+ }
+push 0
+push $N45b93c0
+add_layer {papa_body_mask papa_body_mask.red papa_body_mask.green papa_body_mask.blue}
+ Shuffle {
+  in papa_body_mask
+  green red
+  blue red
+  alpha red
+  name papa_body_mask
+  xpos -213
+  ypos -436
+ }
+ Remove {
+  name nobody
+  xpos -229
+  ypos -415
+  disable true
+ }
+ Dot {
+  name Dot6
+  xpos -195
+  ypos -247
+ }
+push $N45b93c0
+add_layer {papa_eye_mask papa_eye_mask.red papa_eye_mask.green papa_eye_mask.blue}
+ Shuffle {
+  in papa_eye_mask
+  green red
+  blue red
+  alpha red
+  name papa_eye_mask
+  xpos -164
+  ypos -389
+ }
+ Remove {
+  name no_eyes
+  xpos -164
+  ypos -363
+  disable true
+ }
+ Dot {
+  name Dot7
+  xpos -130
+  ypos -263
+ }
+ Merge2 {
+  inputs 8+1
+  operation plus
+  name Merge1
+  xpos 54
+  ypos -165
+ }
+ Output {
+  name Output1
+  xpos 54
+  ypos -109
+ }
+ Viewer {
+  input_process false
+  name Viewer1
+  xpos 54
+  ypos -83
+ }
+end_group
