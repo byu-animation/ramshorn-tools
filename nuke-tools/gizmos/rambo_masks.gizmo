@@ -1,0 +1,212 @@
+#! /usr/local/Nuke8.0v3/libnuke-8.0.v3.so -nx
+version 8.0 v3
+Gizmo {
+ addUserKnob {20 User}
+ addUserKnob {41 BodyFur T no_body_fur.disable}
+ addUserKnob {41 disable_1 l "Fur Eye Lash" T no_fur_eye_lash.disable}
+ addUserKnob {41 disable_2 l "Fur Skin" T no_fur_skin.disable}
+ addUserKnob {41 disable_3 l Horns T no_horns.disable}
+ addUserKnob {41 disable_4 l Hooves T no_hooves.disable}
+ addUserKnob {41 disable_5 l "Fur Hooves" T no_fur_hooves.disable}
+ addUserKnob {41 disable_6 l Body T no_body.disable}
+ addUserKnob {41 disable_7 l Eyes T no_eye.disable}
+ addUserKnob {41 disable_8 l Nose T no_nose.disable}
+}
+ Input {
+  inputs 0
+  name Input1
+  xpos -194
+  ypos -548
+ }
+ Dot {
+  name Dot1
+  xpos -160
+  ypos -511
+ }
+set N13ecf290 [stack 0]
+add_layer {rambo_eye_mask rambo_eye_mask.red rambo_eye_mask.green rambo_eye_mask.blue}
+ Shuffle {
+  in rambo_eye_mask
+  red green
+  blue green
+  alpha green
+  name rambo_eye_mask
+  xpos 254
+  ypos -425
+ }
+ Remove {
+  name no_eye
+  xpos 254
+  ypos -399
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_body_mask rambo_body_mask.red rambo_body_mask.green rambo_body_mask.blue}
+ Shuffle {
+  in rambo_body_mask
+  red green
+  blue green
+  alpha green
+  name rambo_body_mask
+  xpos 137
+  ypos -422
+ }
+ Remove {
+  name no_body
+  xpos 137
+  ypos -396
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_hooves_mask rambo_hooves_mask.red rambo_hooves_mask.green rambo_hooves_mask.blue}
+ Shuffle {
+  in rambo_hooves_mask
+  red green
+  blue green
+  alpha green
+  name rambo_hooves_mask
+  xpos 37
+  ypos -410
+ }
+ Remove {
+  name no_hooves
+  xpos 37
+  ypos -384
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_horns_mask rambo_horns_mask.red rambo_horns_mask.green rambo_horns_mask.blue}
+ Shuffle {
+  in rambo_horns_mask
+  red green
+  blue green
+  alpha green
+  name rambo_horns_mask
+  xpos -54
+  ypos -416
+ }
+ Remove {
+  name no_horns
+  xpos -54
+  ypos -390
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_nose_mask rambo_nose_mask.red rambo_nose_mask.green rambo_nose_mask.blue}
+ Shuffle {
+  in rambo_nose_mask
+  red green
+  blue green
+  alpha green
+  name rambo_nose_mask
+  xpos -138
+  ypos -413
+ }
+ Remove {
+  name no_nose
+  xpos -138
+  ypos -387
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_fur_skin_mask rambo_fur_skin_mask.red rambo_fur_skin_mask.green rambo_fur_skin_mask.blue}
+ Shuffle {
+  in rambo_fur_skin_mask
+  red green
+  blue green
+  alpha green
+  name rambo_fur_skin_mask
+  xpos -235
+  ypos -418
+ }
+ Remove {
+  name no_fur_skin
+  xpos -235
+  ypos -392
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_fur_hooves_mask rambo_fur_hooves_mask.red rambo_fur_hooves_mask.green rambo_fur_hooves_mask.blue}
+ Shuffle {
+  in rambo_fur_hooves_mask
+  red green
+  blue green
+  alpha green
+  name rambo_fur_hooves_mask
+  xpos -328
+  ypos -415
+ }
+ Remove {
+  name no_fur_hooves
+  xpos -328
+  ypos -389
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_fur_eye_lash_mask rambo_fur_eye_lash_mask.red rambo_fur_eye_lash_mask.green rambo_fur_eye_lash_mask.blue}
+ Shuffle {
+  in rambo_fur_eye_lash_mask
+  red green
+  blue green
+  alpha green
+  name rambo_fur_eye_lash_mask
+  xpos -421
+  ypos -421
+ }
+ Remove {
+  name no_fur_eye_lash
+  xpos -421
+  ypos -395
+  disable true
+ }
+push 0
+push $N13ecf290
+add_layer {rambo_body_fur_mask rambo_body_fur_mask.red rambo_body_fur_mask.green rambo_body_fur_mask.blue}
+ Shuffle {
+  in rambo_body_fur_mask
+  red green
+  blue green
+  alpha green
+  name rambo_body_fur_mask
+  xpos -628
+  ypos -422
+ }
+ Remove {
+  name no_body_fur
+  xpos -628
+  ypos -396
+  disable true
+ }
+push $N13ecf290
+add_layer {rambo_fur_eyes_mask rambo_fur_eyes_mask.red rambo_fur_eyes_mask.green rambo_fur_eyes_mask.blue}
+ Shuffle {
+  in rambo_fur_eyes_mask
+  name rambo_fur_eyes_mask
+  xpos -527
+  ypos -424
+ }
+ Remove {
+  name no_fur_eyes
+  xpos -527
+  ypos -398
+  disable true
+ }
+ Merge2 {
+  inputs 10+1
+  operation plus
+  name Merge1
+  xpos -203
+  ypos -131
+ }
+ Output {
+  name Output1
+  xpos -203
+  ypos -105
+ }
+ Viewer {
+  input_process false
+  name Viewer1
+  xpos -203
+  ypos -79
+ }
+end_group
