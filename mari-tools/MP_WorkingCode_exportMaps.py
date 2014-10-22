@@ -16,6 +16,33 @@ from ConfigParser import ConfigParser
 projectName = "MariPipe"
 
 # ------------------------------------------------------------------------------
+def changeExportPath():
+	# Make sure that there is an open project
+	if mari.projects.current() is None:
+		mari.utils.message('Please open a project first.')
+		return
+
+	# Find the currently selected object
+	geo = mari.geo.current()
+	if geo is None:
+		mari.utils.message('Please select an object.')
+
+	# Find the currently selected channel
+	channel = geo.currentChannel()
+	if channel is None:
+		mari.utils.message('Please select a channel.')
+
+	cp = ConfigParser()
+	projPath = mari.current.project().info().projectPath()[:-11]
+	projInfoFile = open(os.path.join(projPath, ".projectInfo"), "wb")
+
+	exportPath = mari.utils.getExistingDirectory(None, 'Select Map Export Path')
+	cp.read(os.path.join(projPath, ".projectInfo"))
+	cp.add_section("FilePaths")
+	cp.set("FilePaths", "Export", exportPath)
+
+	cp.write(projInfoFile)
+
 def convertToRat(geo, filePathNoUDIM):
 	for patch in geo.patchList():
 		# Get Patch UDIM numbers
