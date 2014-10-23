@@ -100,7 +100,8 @@ class AlembicExportDialog(QDialog):
 		if self.showConfirmAlembicDialog(selectedReferences) == 'Yes':
 			loadPlugin("AbcExport")
 			for ref in selectedReferences:
-				abcFilePath = self.build_alembic_filepath(ref)
+				#abcFilePath = self.build_alembic_filepath(ref)
+				abcFilePath = "/users/ugrad/w/wesleyjh/ramsHorn2015/animation_cache/abc/ramshorn_rambo_rig_stable.abc"
 				print abcFilePath
 				command = self.build_alembic_command(ref, abcFilePath)
 				print command
@@ -145,8 +146,12 @@ class AlembicExportDialog(QDialog):
 
 		for dep in depList:
 			depRef = ls(dep)
-			tagged = self.get_tagged_node(depRef[0])
-			roots_string = " ".join([roots_string, "-root %s"%(tagged.name())])
+			if len(depRef) > 0:
+				tagged = self.get_tagged_node(depRef[0]).name()
+			else:
+				tagged = dep[:-2]
+
+			roots_string = " ".join([roots_string, "-root %s"%(tagged)])
 
 		start_frame = cmds.playbackOptions(q=1, animationStartTime=True) - 5
 		end_frame = cmds.playbackOptions(q=1, animationEndTime=True) + 5
