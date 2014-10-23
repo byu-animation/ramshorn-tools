@@ -100,8 +100,7 @@ class AlembicExportDialog(QDialog):
 		if self.showConfirmAlembicDialog(selectedReferences) == 'Yes':
 			loadPlugin("AbcExport")
 			for ref in selectedReferences:
-				#abcFilePath = self.build_alembic_filepath(ref)
-				abcFilePath = "/users/ugrad/w/wesleyjh/ramsHorn2015/animation_cache/abc/ramshorn_rambo_rig_stable.abc"
+				abcFilePath = self.build_alembic_filepath(ref)
 				print abcFilePath
 				command = self.build_alembic_command(ref, abcFilePath)
 				print command
